@@ -1,0 +1,185 @@
+Wed Jan  3 15:08:13 EET 2007  zeenix@gmail.com
+* Put URL of libssh project page in the README
+
+Wed Jan  3 11:48:28 EET 2007  zeenix@gmail.com
+* Don't be so demanding about the version of autoconf
+
+Wed Jan  3 11:47:48 EET 2007  zeenix@gmail.com
+* Create a new DS for the Client
+
+Wed Jan  3 11:40:05 EET 2007  zeenix@gmail.com
+* add autogen.sh
+
+Wed Jan  3 00:23:16 EET 2007  zeenix@gmail.com
+* Put the license header in all source files
+
+Wed Jan  3 00:06:36 EET 2007  zeenix@gmail.com
+* Add some documentation and rename the default pid file
+
+Tue Jan  2 23:17:14 EET 2007  zeenix@gmail.com
+* BUGFIX: Don't end-up in an infinite loop on EOF from the ssh
+server
+
+Tue Jan  2 23:08:34 EET 2007  zeenix@gmail.com
+* No need to call listen() on the server socket more than once
+
+Tue Jan  2 23:00:25 EET 2007  zeenix@gmail.com
+* don't launch more than one daemon using the same pid file
+
+Tue Jan  2 22:21:06 EET 2007  zeenix@gstreamer.net
+* also make gabriel-server-stop script executable
+
+Tue Jan  2 22:12:54 EET 2007  zeenix@gmail.com
+* Add AUTHORS file
+
+Tue Jan  2 22:04:10 EET 2007  zeenix@gmail.com
+* autofoo enabled
+
+Tue Jan  2 15:05:01 EET 2007  zeenix@gmail.com
+* cleaning-up
+
+Tue Jan  2 14:38:16 EET 2007  zeenix@gmail.com
+* print the D-Bus bus address
+
+Tue Jan  2 14:30:21 EET 2007  zeenix@gmail.com
+* Enable interactive password input
+
+Tue Jan  2 13:43:32 EET 2007  zeenix@gmail.com
+* Find the username if not provided
+
+Tue Jan  2 11:33:30 EET 2007  zeenix@gmail.com
+* glibization of fundamental datatypes
+
+Tue Jan  2 11:28:15 EET 2007
+zeenix@gmail.com
+* Provide a cmdline arg for specifying the
+address to bind the tcp socket to
+
+Tue Jan  2 11:13:00 EET 2007
+zeenix@gmail.com
+* rename gabriel-client to gabriel
+
+Tue Jan  2 11:11:05 EET 2007
+zeenix@gmail.com
+* Add command-line arguments
+
+Sat Dec 30 18:28:03 EET 2006
+zeenix@gmail.com
+* Correct message/error output
+
+Sat Dec 30 17:57:13 EET 2006
+zeenix@gmail.com
+* rename gablient-start to
+gabriel-client and remove unneeded
+files.
+
+Fri Dec 29 20:07:17 EET 2006
+zeenix@gmail.com
+* rename the binary and refactor
+the code
+
+Fri Dec 29 14:44:06 EET 2006
+zeenix@gmail.com
+* user should be able to
+specify the pid file to use
+
+Thu Dec 28 17:30:09 EET 2006
+zeenix@gmail.com
+* simple gabriel server
+start and stop scripts
+
+Thu Dec 28 17:16:30 EET 2006
+zeenix@gmail.com
+* no need to use tcp
+forwarding
+
+Thu Dec 28 13:38:02 EET
+2006  zeenix@gmail.com
+* getting gabriel
+service file working..
+
+Thu Dec 28 13:37:18 EET
+2006  zeenix@gmail.com
+* adapting libssh 0.2
+api
+
+Thu Dec 28 15:44:18
+EET 2006
+zeenix@gmail.com
+* no need for
+running a tcp server
+on the remote end
+
+Thu Dec 28 13:32:31
+EET 2006
+zeenix@gmail.com
+* going towards
+the thread way..
+
+Fri Dec 15
+18:55:25 EET 2006
+zeenix@gmail.com
+* basic tcp port
+forwarding
+working now
+
+Fri Dec 15
+15:51:17 EET
+2006
+zeenix@gmail.com
+* enable
+key-based auth
+
+Fri Dec 15
+00:59:10 EET
+2006
+zeenix@gmail.com
+* Remove
+unneeded
+files and
+add the dbus
+spec
+
+Wed Dec 13
+01:30:41 EET
+2006
+zeenix@gmail.com
+*
+implementing
+tcp
+    forwarding
+(3)
+
+    Tue Dec 12
+    00:38:34
+    EET 2006
+    zeenix@gmail.com
+    *
+    implementing
+    tcp port
+    forwarding..
+
+    Mon Dec
+    11
+    16:14:04
+    EET 2006
+    zeenix@gmail.com
+    *
+    implementing
+    tcp
+    forwarding
+
+    Tue
+    Dec  5
+    14:01:42
+    EET
+    2006
+    zeenix@gmail.com
+    *
+    putting
+    test
+    code
+    into
+    a
+    repo
+

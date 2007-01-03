@@ -1,0 +1,16 @@
+if BUILD_CLIENT
+CLIENT_SUBDIR = client
+else
+CLIENT_SUBDIR =
+endif
+
+if BUILD_SERVER
+SERVER_SUBDIR = server
+else
+SERVER_SUBDIR =
+endif
+
+SUBDIRS              = $(CLIENT_SUBDIR) $(SERVER_SUBDIR)
+
+MAINTAINERCLEANFILES = Makefile.in configure
+

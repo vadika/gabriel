@@ -1,0 +1,62 @@
+Introduction
+============
+
+Gabriel is a simple utility to enable D-Bus clients to connect to a D-Bus
+daemon running on a remote machine, through ssh.
+
+Installing Gabriel
+======================
+
+(0) To build Gabriel client, you need to have libssh (>= 0.2) [1]
+    and glib (> 2.10) installed.
+    
+    For Gabriel server scripts, you need socat and dbus (> 1.0.2)
+    installed on your machine.
+
+(1) Type:
+
+    ./configure
+
+(2) make
+(3) make install
+
+Usage Notes
+=============
+
+Gabriel is composed of a client-side and a server side:
+
+The server side is actually just a small dbus configuration file and
+a pair of scripts that start and shut-down a dbus-daemon with that
+configuration file.
+
+Here is the usage for the Gabriel server scripts:
+
+    gabriel-server-start [PID_FILE]
+    gabriel-server-stop [PID_FILE]
+
+Where PID_FILE is the path to the file where the PID of the dbus-daemon
+will be stored. If no PID_FILE is specified, /tmp/gabriel-server.pid
+is asumed. 
+
+The client side is the actual thing and is therefore a binary named,
+gabriel. Following is it's usage:
+
+  gabriel [OPTION...] - Gabriel
+
+  Help Options:
+  -?, --help                  Show help options
+
+  Application Options:
+  -h, --host=HOSTNAME         Hostname or IP of the remote host
+  -u, --username=USERNAME     Username on the remote host
+  -p, --password=PASSWORD     Password on the remote host
+  -b, --bind=LOCALHOST        The address to listen for DBus client
+                              connections on
+  -t, --port=PORT             The TCP port to listen for DBus client
+                              connections on
+
+Upon successful launch, gabriel will inform you about the D-Bus Bus
+address you need to use for your D-Bus clients.
+
+
+[1] http://www.0xbadc0de.be/libssh:libssh
