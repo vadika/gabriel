@@ -1,5 +1,10 @@
 2007-01-03  Zeeshan Ali,  <zeenix@gstreamer.net>
 
+	* server/Makefile.am:
+	Fix `make distcheck`
+
+2007-01-03  Zeeshan Ali,  <zeenix@gstreamer.net>
+
 	* client/Makefile.am:
 	* client/gabriel.c:
 	* configure.ac:

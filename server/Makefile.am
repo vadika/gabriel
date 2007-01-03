@@ -19,13 +19,16 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-EXTRA_DIST = gabriel-server-start.in
-bin_SCRIPTS = gabriel-server-start gabriel-server-stop
+dist_bin_SCRIPTS = gabriel-server-start
+bin_SCRIPTS = gabriel-server-stop
 sysconf_DATA = gabriel-dbus.conf
+CLEANFILES = gabriel-server-start
 
 gabriel-server-start: Makefile gabriel-server-start.in
 	sed -e 's,@SYSCONF_DIR\@,$(sysconfdir),g' \
 	    -e 's,gabriel-server-start.in,gabriel-server-start,g' \
-		gabriel-server-start.in > gabriel-server-start
-	chmod +x gabriel-server-start gabriel-server-stop
+		$(srcdir)/gabriel-server-start.in > $(top_builddir)/server/gabriel-server-start
+	chmod +x $(top_builddir)/server/gabriel-server-start
+
+EXTRA_DIST = $(dist_bin_SCRIPTS) gabriel-server-start.in gabriel-server-stop gabriel-dbus.conf
 
