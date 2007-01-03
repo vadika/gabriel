@@ -366,6 +366,5 @@ main (gint argc, gchar **argv)
     ssh_disconnect (ssh_session);
 
 beach:
-    g_print ("exiting gracefully\n");
     return 0;
 }
