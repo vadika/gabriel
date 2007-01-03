@@ -1,5 +1,15 @@
 2007-01-03  Zeeshan Ali,  <zeenix@gstreamer.net>
 
+	* client/Makefile.am:
+	* client/gabriel.c:
+	* configure.ac:
+	* server/Makefile.am:
+	* server/gabriel-server-start.in:
+	* server/gabriel-server-stop:
+	Correct the copyright header.
+
+2007-01-03  Zeeshan Ali,  <zeenix@gstreamer.net>
+
 	* COPYING:
 	* INSTALL:
 	* NEWS: Adding the necessary files.
