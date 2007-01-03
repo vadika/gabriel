@@ -1,14 +1,19 @@
-2007-01-03  Zeeshan Ali,  <zeeshan.ali@nokia.com>
+2007-01-03  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* autogen.sh:
+	Don't make symlinks for files that exist.
+
+2007-01-03  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* client/gabriel.c: (main):
 	Remove unneeded print statements.
 
-2007-01-03  Zeeshan Ali,  <zeenix@gstreamer.net>
+2007-01-03  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* server/Makefile.am:
 	Fix `make distcheck`
 
-2007-01-03  Zeeshan Ali,  <zeenix@gstreamer.net>
+2007-01-03  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* client/Makefile.am:
 	* client/gabriel.c:
@@ -18,9 +23,8 @@
 	* server/gabriel-server-stop:
 	Correct the copyright header.
 
-2007-01-03  Zeeshan Ali,  <zeenix@gstreamer.net>
+2007-01-03  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* COPYING:
 	* INSTALL:
 	* NEWS: Adding the necessary files.
-
