@@ -1,0 +1,96 @@
+/*
+ * gabriel-main.c
+ *
+ * Part of Gabriel project
+ * Copyright (C) 2007, Zeeshan Ali <zeenix@gstreamer.net>
+ *
+ * Gabriel is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Gabriel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Gabriel; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#include "gabriel-session.h"
+
+gboolean shutting_down;
+
+static void
+signal_handler (gint sig_num)
+{
+    struct sigaction sig_action;
+
+    switch (sig_num) {
+        case SIGINT:
+            /* reset the unix signals */
+            bzero (&sig_action, sizeof (sig_action));
+            sig_action.sa_handler = SIG_DFL;
+            sigaction (SIGINT, &sig_action, NULL);
+            shutting_down = TRUE;
+            break;
+        default:
+            break;
+    }
+}
+
+gint
+main (gint argc, gchar **argv)
+{
+    struct sigaction sig_action;
+    GabrielSession *session;
+    GOptionContext *context;
+    GError *error = NULL;
+    gchar *host = DEFAULT_ADDRESS;
+    gchar *username = NULL;
+    gchar *password = NULL;
+    gchar *local_address = DEFAULT_ADDRESS;
+    gint tcp_port = DEFAULT_TCP_PORT;
+
+    GOptionEntry entries[] = {
+	{"host", 'h', 0, G_OPTION_ARG_STRING, &host,
+	 "Hostname or IP of the remote host", "HOSTNAME"},
+	{"username", 'u', 0, G_OPTION_ARG_STRING, &username,
+	 "Username on the remote host", "USERNAME"},
+	{"password", 'p', 0, G_OPTION_ARG_STRING, &password,
+	 "Password on the remote host", "PASSWORD"},
+	{"bind", 'b', 0, G_OPTION_ARG_STRING, &local_address,
+	 "The address to listen for DBus client connections on", "LOCALHOST"},
+	{"port", 't', 0, G_OPTION_ARG_INT, &tcp_port,
+	 "The TCP port to listen for DBus client connections on", "PORT"},
+	{NULL}
+    };
+
+    context = g_option_context_new ("- Gabriel");
+    g_option_context_add_main_entries (context, entries, NULL);
+    g_option_context_parse (context, &argc, &argv, &error);
+
+    if (username == NULL) {
+        username = (gchar *) g_get_user_name ();
+    }
+
+    /* set the unix signals */
+    bzero (&sig_action, sizeof (sig_action));
+    sig_action.sa_handler = signal_handler;
+    sigaction (SIGINT, &sig_action, NULL);
+   
+    session = gabriel_session_create (host, username, password);
+    if (session == NULL) {
+        goto beach;
+    }
+   
+    shutting_down = FALSE;
+    gabriel_handle_clients (session, local_address, tcp_port);
+
+    gabriel_session_free (session);
+
+beach:
+    return 0;
+}

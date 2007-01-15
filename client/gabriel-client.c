@@ -1,0 +1,154 @@
+/*
+ * gabriel-client.c
+ *
+ * Part of Gabriel project
+ * Copyright (C) 2007, Zeeshan Ali <zeenix@gstreamer.net>
+ *
+ * Gabriel is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Gabriel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Gabriel; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#include "gabriel-session.h"
+#include "gabriel-client.h"
+
+extern gboolean shutting_down;
+
+static CHANNEL *
+gabriel_channel_create (GabrielSession * session)
+{
+    CHANNEL *channel = NULL;
+    gint ret;
+
+    channel = channel_new (session->ssh_session);
+    if (!channel) {
+	g_critical ("Failed to create an ssh channel\n");
+	goto beach;
+    }
+
+    ret = channel_open_session (channel);
+    if (ret) {
+	g_critical ("Failed to open ssh session channel\n");
+	goto finland;
+    }
+
+    ret = channel_request_exec (channel,
+                                "socat - UNIX-CONNECT:/tmp/gabriel");
+    if (ret) {
+	g_critical ("Failed to start socat on the remote\n");
+	goto finland;
+    }
+
+beach:
+   return channel;
+
+finland:
+    channel_free (channel);
+    return NULL;
+}
+
+static void
+gabriel_channel_free (CHANNEL * channel)
+{
+    channel_free (channel);
+}
+
+GabrielClient *
+gabriel_client_new (GabrielSession * session, gint sock)
+{
+    GabrielClient *client = g_malloc (sizeof (GabrielClient));
+    client->session = session;
+    client->sock = sock;
+
+    return client;
+}
+
+void
+gabriel_client_free (GabrielClient * client)
+{
+  close (client->sock);
+  free (client);
+}
+
+void gabriel_handle_client (GabrielClient * client)
+{
+    fd_set fds;
+    struct timeval timeout;
+    gchar buffer[10];
+    BUFFER *readbuf = buffer_new ();
+    CHANNEL *channels[] = {NULL, NULL};
+    CHANNEL *outchannel[2];
+    CHANNEL *channel;
+    gint lus;
+    gint eof = 0;
+    gint ret;
+
+    channel = channels[0] = gabriel_channel_create (client->session);
+
+    if (channel == NULL) {
+        goto beach;
+    }
+   
+    while (channel_is_open (channel) && !eof) {
+        do {
+            FD_ZERO (&fds);
+            if (!eof)
+                FD_SET (client->sock, &fds);
+            timeout.tv_sec = 30;
+            timeout.tv_usec = 0;
+            ret = ssh_select (channels, outchannel, client->sock + 1, &fds, &timeout);
+        } while (ret == SSH_EINTR && !shutting_down);
+
+        if (shutting_down) {
+           goto near_beach;
+        }
+
+        if (FD_ISSET (client->sock, &fds)) {
+            lus = read (client->sock, buffer, 10);
+            if (lus) {
+                channel_write (channel, buffer, lus);
+            }
+            else {
+                eof = 1;
+                continue;
+            }
+        }
+
+        if (outchannel[0]) {
+            while (channel_poll (outchannel[0], 0)) {
+                lus = channel_read (outchannel[0], readbuf, 0, 0);
+
+                if(lus == -1) {
+                    g_critical ("%s\n", ssh_get_error (client->session->ssh_session));
+                    goto near_beach;
+                }
+
+                if (lus == 0) {
+                    g_message ("EOF received from the server\n");
+                    eof = 1;
+                    break;
+                } 
+                
+                else {
+                    write (client->sock, buffer_get (readbuf), lus);
+                }
+            }
+        }
+    }
+
+near_beach:
+    gabriel_channel_free (channel);
+beach:
+    buffer_free (readbuf);
+}
+

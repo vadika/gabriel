@@ -1,5 +1,20 @@
 2007-01-15  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* client/Makefile.am:
+	* client/gabriel-client.c: (gabriel_channel_create),
+	(gabriel_channel_free), (gabriel_client_new),
+	(gabriel_client_free), (gabriel_handle_client):
+	* client/gabriel-client.h:
+	* client/gabriel-main.c: (signal_handler), (main):
+	* client/gabriel-session.c: (gabriel_handle_clients),
+	(gabriel_session_free), (gabriel_session_create):
+	* client/gabriel-session.h:
+	* client/gabriel.c:
+	* configure.ac:
+	Refactor the client code into multiple modules.
+
+2007-01-15  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* client/gabriel.c: (gabriel_channel_create), (gabriel_client_new),
 	(gabriel_handle_client), (gabriel_handle_clients),
 	(gabriel_session_free), (gabriel_session_create), (main):

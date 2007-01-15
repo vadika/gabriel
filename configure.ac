@@ -20,7 +20,7 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([Gabriel], [0.1], [zeenix@gstreamer.net], [gabriel])
 AC_PREREQ([2.60])
-AC_CONFIG_SRCDIR([client/gabriel.c])
+AC_CONFIG_SRCDIR([client/gabriel-main.c])
 AM_INIT_AUTOMAKE
 
 dnl Checks for programs.
