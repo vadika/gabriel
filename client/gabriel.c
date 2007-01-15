@@ -51,13 +51,18 @@ signal_handler (gint sig_num)
     }
 }
 
+typedef struct
+{
+    SSH_SESSION *ssh_session;
+} GabrielSession;
+
 CHANNEL *
-gabriel_channel_create (SSH_SESSION * ssh_session)
+gabriel_channel_create (GabrielSession * session)
 {
     CHANNEL *channel = NULL;
     gint ret;
 
-    channel = channel_new (ssh_session);
+    channel = channel_new (session->ssh_session);
     if (!channel) {
 	g_critical ("Failed to create an ssh channel\n");
 	goto beach;
@@ -92,15 +97,15 @@ gabriel_channel_free (CHANNEL * channel)
 
 typedef struct
 {
-    SSH_SESSION *ssh_session;
+    GabrielSession *session;
     gint sock;
 } GabrielClient;
 
 GabrielClient *
-gabriel_client_new (SSH_SESSION * ssh_session, gint sock)
+gabriel_client_new (GabrielSession * session, gint sock)
 {
     GabrielClient *client = g_malloc (sizeof (GabrielClient));
-    client->ssh_session = ssh_session;
+    client->session = session;
     client->sock = sock;
 
     return client;
@@ -126,7 +131,7 @@ void gabriel_handle_client (GabrielClient * client)
     gint eof = 0;
     gint ret;
 
-    channel = channels[0] = gabriel_channel_create (client->ssh_session);
+    channel = channels[0] = gabriel_channel_create (client->session);
 
     if (channel == NULL) {
         goto beach;
@@ -162,7 +167,7 @@ void gabriel_handle_client (GabrielClient * client)
                 lus = channel_read (outchannel[0], readbuf, 0, 0);
 
                 if(lus == -1) {
-                    g_critical ("%s\n", ssh_get_error (client->ssh_session));
+                    g_critical ("%s\n", ssh_get_error (client->session->ssh_session));
                     goto near_beach;
                 }
 
@@ -185,7 +190,7 @@ beach:
     buffer_free (readbuf);
 }
 
-void gabriel_handle_clients (SSH_SESSION * ssh_session,
+void gabriel_handle_clients (GabrielSession * session,
                              gchar * local_address,
                              gint tcp_port)
 {
@@ -236,7 +241,7 @@ void gabriel_handle_clients (SSH_SESSION * ssh_session,
             goto beach;
         }
 
-	client = gabriel_client_new (ssh_session, client_sock);
+	client = gabriel_client_new (session, client_sock);
         gabriel_handle_client (client);
 	gabriel_client_free (client);
     }
@@ -245,12 +250,24 @@ beach:
     close (tcp_server_sock);
 }
 
-SSH_SESSION *
+void
+gabriel_session_free (GabrielSession * session)
+{
+    if (session) {
+        if (session->ssh_session) {
+            ssh_disconnect (session->ssh_session);
+        }
+
+        g_free (session);
+    }
+}
+
+GabrielSession *
 gabriel_session_create (gchar * host,
                         gchar * username,
                         gchar * password)
 {
-    SSH_SESSION *ssh_session;
+    GabrielSession *session = g_malloc (sizeof (GabrielSession));
     SSH_OPTIONS *ssh_options;
     gint ret;
     
@@ -260,21 +277,21 @@ gabriel_session_create (gchar * host,
     ssh_options_set_ssh_dir (ssh_options, "%s/.ssh");
     ssh_options_set_identity (ssh_options, "id_dsa");
 
-    ssh_session = ssh_new ();
-    if (!ssh_session) {
+    session->ssh_session = ssh_new ();
+    if (!session->ssh_session) {
 	g_critical ("Failed to create ssh session\n");
-	return NULL;
+	goto finland;
     }
-    ssh_set_options (ssh_session, ssh_options);
+    ssh_set_options (session->ssh_session, ssh_options);
 
-    ret = ssh_connect (ssh_session);
+    ret = ssh_connect (session->ssh_session);
 
     if (ret) {
 	g_critical ("Failed to open ssh connection to %s\n", host);
 	goto finland;
     }
 
-    ret = ssh_userauth_autopubkey (ssh_session);
+    ret = ssh_userauth_autopubkey (session->ssh_session);
     
     if (ret != SSH_AUTH_SUCCESS) {
 	if (ret == SSH_AUTH_DENIED) {
@@ -292,7 +309,7 @@ gabriel_session_create (gchar * host,
                }
             }
 
-	    ret = ssh_userauth_password (ssh_session, username, password);
+	    ret = ssh_userauth_password (session->ssh_session, username, password);
             /* Get rid of the passwd string ASAP */
             bzero (password, strlen (password));
 
@@ -308,10 +325,10 @@ gabriel_session_create (gchar * host,
 	}
     }
 
-    return ssh_session;
+    return session;
 
 finland:
-    ssh_disconnect (ssh_session);
+    gabriel_session_free (session);
     return NULL;
 }
 
@@ -319,7 +336,7 @@ gint
 main (gint argc, gchar **argv)
 {
     struct sigaction sig_action;
-    SSH_SESSION *ssh_session;
+    GabrielSession *session;
     GOptionContext *context;
     GError *error = NULL;
     gchar *host = DEFAULT_ADDRESS;
@@ -355,15 +372,15 @@ main (gint argc, gchar **argv)
     sig_action.sa_handler = signal_handler;
     sigaction (SIGINT, &sig_action, NULL);
    
-    ssh_session = gabriel_session_create (host, username, password);
-    if (ssh_session == NULL) {
+    session = gabriel_session_create (host, username, password);
+    if (session == NULL) {
         goto beach;
     }
    
     shutting_down = FALSE;
-    gabriel_handle_clients (ssh_session, local_address, tcp_port);
+    gabriel_handle_clients (session, local_address, tcp_port);
 
-    ssh_disconnect (ssh_session);
+    gabriel_session_free (session);
 
 beach:
     return 0;
