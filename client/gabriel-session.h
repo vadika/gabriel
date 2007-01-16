@@ -23,6 +23,7 @@
 #define __GABRIEL_SESSION_H__
 
 #include <libssh/libssh.h>
+#include <dbus/dbus.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -38,9 +39,13 @@
 typedef struct
 {
     SSH_SESSION *ssh_session;
+    gchar *bus_address;         /* D-Bus bus address on the remote */
+    gchar *socat_address;       /* socket address socat will connect */
+                                /* to, on the remote */
 } GabrielSession;
 
 GabrielSession * gabriel_session_create (gchar * host,
+                                         gchar * bus_address,
                                          gchar * username,
                                          gchar * password);
 void gabriel_session_free (GabrielSession * session);

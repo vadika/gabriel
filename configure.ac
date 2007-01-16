@@ -38,10 +38,20 @@ if test "x$build_client" = "xyes"; then
     dnl Check for glib2
     PKG_CHECK_MODULES(GLIB2,glib-2.0 >= 2.10,HAVE_GLIB2=yes,HAVE_GLIB2=no)
     AC_SUBST(GLIB2_LIBS)
-AC_SUBST(GLIB2_CFLAGS)
+    AC_SUBST(GLIB2_CFLAGS)
 
     if test "x$HAVE_GLIB2" = "xno"; then
         AC_MSG_WARN([Can't find Glib2. Gabriel client shall not be built.])
+        build_client="no"
+    fi
+    
+    dnl Check for D-Bus
+    PKG_CHECK_MODULES(DBUS,dbus-1 >= 1.0.2,HAVE_DBUS=yes,HAVE_DBUS=no)
+    AC_SUBST(DBUS_LIBS)
+    AC_SUBST(DBUS_CFLAGS)
+
+    if test "x$HAVE_DBUS" = "xno"; then
+        AC_MSG_WARN([Can't find D-Bus. Gabriel client shall not be built.])
         build_client="no"
     fi
 fi

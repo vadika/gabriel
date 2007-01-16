@@ -91,19 +91,83 @@ gabriel_session_free (GabrielSession * session)
         if (session->ssh_session) {
             ssh_disconnect (session->ssh_session);
         }
+        
+        if (session->socat_address) {
+            g_free (session->socat_address);
+        }
 
         g_free (session);
     }
 }
 
+static gboolean
+gabriel_session_parse_bus_address (GabrielSession *session)
+{
+    gboolean dbus_ret;
+    DBusAddressEntry **entries;
+    gint num_entries;
+    DBusError error;
+    const gchar *method;
+    const gchar *value;
+
+    dbus_error_init (&error);
+    dbus_ret = dbus_parse_address (session->bus_address,
+                                   &entries,
+                                   &num_entries,
+                                   &error);
+    if (!dbus_ret || num_entries < 1) {
+        if (dbus_error_is_set (&error)) {
+            g_critical ("%s\n", strerror (errno));
+        }
+
+        else {
+            g_critical ("Failed to parse D-Bus bus address: %s\n",
+                        session->bus_address);
+        }
+
+        return FALSE;
+    }
+
+    /* We are only concerned with the first entry */
+    method = dbus_address_entry_get_method (entries[0]);
+       
+    if (strcmp ("unix", method) == 0) {
+        value = dbus_address_entry_get_value (entries[0], "abstract");
+
+        if (value != NULL) {
+            session->socat_address = g_strjoin (":", "ABSTRACT-CONNECT", value, NULL);
+        }
+        
+        else {
+            g_critical ("Failed to parse D-Bus bus address: %s\n",
+                        session->bus_address);
+            return FALSE;
+        }
+    }
+
+    else {
+        g_critical ("Only Unix abstract sockets currently supported: %s\n",
+                    session->bus_address);
+        return FALSE;
+    }
+
+    dbus_error_free (&error);
+
+    return TRUE;
+}
+
 GabrielSession *
 gabriel_session_create (gchar * host,
+                        gchar * bus_address,
                         gchar * username,
                         gchar * password)
 {
-    GabrielSession *session = g_malloc (sizeof (GabrielSession));
+    GabrielSession *session = g_new0 (GabrielSession, 1);
     SSH_OPTIONS *ssh_options;
     gint ret;
+    
+    session->bus_address = bus_address;
+    gabriel_session_parse_bus_address (session);
     
     ssh_options = ssh_options_new ();
     ssh_options_set_host (ssh_options, host);

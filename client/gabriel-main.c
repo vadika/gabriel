@@ -52,7 +52,9 @@ main (gint argc, gchar **argv)
     gchar *username = NULL;
     gchar *password = NULL;
     gchar *local_address = DEFAULT_ADDRESS;
+    gchar *bus_address = NULL;
     gint tcp_port = DEFAULT_TCP_PORT;
+    gint ret = 0;
 
     GOptionEntry entries[] = {
 	{"host", 'h', 0, G_OPTION_ARG_STRING, &host,
@@ -62,7 +64,10 @@ main (gint argc, gchar **argv)
 	{"password", 'p', 0, G_OPTION_ARG_STRING, &password,
 	 "Password on the remote host", "PASSWORD"},
 	{"bind", 'b', 0, G_OPTION_ARG_STRING, &local_address,
-	 "The address to listen for DBus client connections on", "LOCALHOST"},
+	 "The address to listen for DBus client connections on", "HOSTNAME"},
+	{"bus-address", 'd', 0, G_OPTION_ARG_STRING, &local_address,
+	 "The bus address of the remote D-Bus daemon",
+         "BUS_ADDRESS"},
 	{"port", 't', 0, G_OPTION_ARG_INT, &tcp_port,
 	 "The TCP port to listen for DBus client connections on", "PORT"},
 	{NULL}
@@ -71,6 +76,19 @@ main (gint argc, gchar **argv)
     context = g_option_context_new ("- Gabriel");
     g_option_context_add_main_entries (context, entries, NULL);
     g_option_context_parse (context, &argc, &argv, &error);
+
+    if (bus_address == NULL) {
+        bus_address = (gchar *) g_getenv ("DBUS_SESSION_BUS_ADDRESS");
+
+        if (bus_address == NULL) {
+            g_critical ("The address of the D-Bus session bus must be"
+                        "provided either using the commandline option"
+                        "or the environment varriable"
+                        "'DBUS_SESSION_BUS_ADDRESS'\n");
+            ret = -1;
+            goto beach;
+        }
+    }
 
     if (username == NULL) {
         username = (gchar *) g_get_user_name ();
@@ -81,8 +99,9 @@ main (gint argc, gchar **argv)
     sig_action.sa_handler = signal_handler;
     sigaction (SIGINT, &sig_action, NULL);
    
-    session = gabriel_session_create (host, username, password);
+    session = gabriel_session_create (host, bus_address, username, password);
     if (session == NULL) {
+        ret = -2;
         goto beach;
     }
    
@@ -92,5 +111,5 @@ main (gint argc, gchar **argv)
     gabriel_session_free (session);
 
 beach:
-    return 0;
+    return ret;
 }

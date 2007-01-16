@@ -1,3 +1,17 @@
+2007-01-17  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* client/Makefile.am:
+	* client/gabriel-client.c: (gabriel_channel_create_bridge),
+	(gabriel_channel_create), (gabriel_client_new),
+	(gabriel_handle_client):
+	* client/gabriel-main.c: (main):
+	* client/gabriel-session.c: (gabriel_session_free),
+	(gabriel_session_parse_bus_address), (gabriel_session_create):
+	* client/gabriel-session.h:
+	* configure.ac:
+	Add ability to connect to the normal session bus daemon through
+	abstract unix sockets.
+
 2007-01-15  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* client/Makefile.am:

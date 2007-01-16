@@ -24,28 +24,44 @@
 
 extern gboolean shutting_down;
 
+static gint
+gabriel_channel_create_bridge (GabrielClient *client, CHANNEL *channel)
+{
+    gint ret;
+    gchar *socat_cmd =
+            g_strjoin (" - ", "socat", client->session->socat_address, NULL);
+
+    ret = channel_open_session (channel);
+    if (ret) {
+	g_critical ("Failed to open ssh session channel\n");
+	goto beach;
+    }
+
+    ret = channel_request_exec (channel, socat_cmd);
+    if (ret) {
+	g_critical ("Failed to start socat on the remote\n");
+	goto beach;
+    }
+
+beach:
+    g_free (socat_cmd);
+    return ret;
+}
+
 static CHANNEL *
-gabriel_channel_create (GabrielSession * session)
+gabriel_channel_create (GabrielClient * client)
 {
     CHANNEL *channel = NULL;
     gint ret;
 
-    channel = channel_new (session->ssh_session);
+    channel = channel_new (client->session->ssh_session);
     if (!channel) {
 	g_critical ("Failed to create an ssh channel\n");
 	goto beach;
     }
 
-    ret = channel_open_session (channel);
+    ret = gabriel_channel_create_bridge (client, channel);
     if (ret) {
-	g_critical ("Failed to open ssh session channel\n");
-	goto finland;
-    }
-
-    ret = channel_request_exec (channel,
-                                "socat - UNIX-CONNECT:/tmp/gabriel");
-    if (ret) {
-	g_critical ("Failed to start socat on the remote\n");
 	goto finland;
     }
 
@@ -66,7 +82,7 @@ gabriel_channel_free (CHANNEL * channel)
 GabrielClient *
 gabriel_client_new (GabrielSession * session, gint sock)
 {
-    GabrielClient *client = g_malloc (sizeof (GabrielClient));
+    GabrielClient *client = g_new0 (GabrielClient, 1);
     client->session = session;
     client->sock = sock;
 
@@ -93,7 +109,7 @@ void gabriel_handle_client (GabrielClient * client)
     gint eof = 0;
     gint ret;
 
-    channel = channels[0] = gabriel_channel_create (client->session);
+    channel = channels[0] = gabriel_channel_create (client);
 
     if (channel == NULL) {
         goto beach;
