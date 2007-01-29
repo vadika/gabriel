@@ -65,7 +65,7 @@ main (gint argc, gchar **argv)
 	 "Password on the remote host", "PASSWORD"},
 	{"bind", 'b', 0, G_OPTION_ARG_STRING, &local_address,
 	 "The address to listen for DBus client connections on", "HOSTNAME"},
-	{"bus-address", 'd', 0, G_OPTION_ARG_STRING, &local_address,
+	{"bus-address", 'd', 0, G_OPTION_ARG_STRING, &bus_address,
 	 "The bus address of the remote D-Bus daemon",
          "BUS_ADDRESS"},
 	{"port", 't', 0, G_OPTION_ARG_INT, &tcp_port,

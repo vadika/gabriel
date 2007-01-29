@@ -1,3 +1,7 @@
+2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* client/gabriel-main.c: (main): Fix a small typo.
+
 2007-01-26  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* client/gabriel-session.c: (gabriel_session_parse_bus_address):
