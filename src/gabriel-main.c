@@ -31,9 +31,9 @@ signal_handler (gint sig_num)
     switch (sig_num) {
         case SIGINT:
             /* reset the unix signals */
-            bzero (&sig_action, sizeof (sig_action));
-            sig_action.sa_handler = SIG_DFL;
+            sig_action.sa_flags = SA_RESETHAND;
             sigaction (SIGINT, &sig_action, NULL);
+            sigaction (SIGTERM, &sig_action, NULL);
             shutting_down = TRUE;
             break;
         default:
@@ -98,6 +98,7 @@ main (gint argc, gchar **argv)
     bzero (&sig_action, sizeof (sig_action));
     sig_action.sa_handler = signal_handler;
     sigaction (SIGINT, &sig_action, NULL);
+    sigaction (SIGTERM, &sig_action, NULL);
    
     session = gabriel_session_create (host, bus_address, username, password);
     if (session == NULL) {
