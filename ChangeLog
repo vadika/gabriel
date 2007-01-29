@@ -1,5 +1,11 @@
 2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* README: Inform the user about socat/ssh requirement on the 
+	remote.
+	* TODO: Remove implemented item from TODO list.
+
+2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* src/gabriel-main.c: (signal_handler), (main):
 	- Handle SIGTERM as well.
 	- Use SA_RESETHAND to reset signal handlers.
