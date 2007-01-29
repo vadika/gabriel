@@ -1,5 +1,13 @@
 2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* README:
+	Update the README according to the newest changes.
+	* src/gabriel-client.c: (gabriel_handle_client):
+	Shorten the timeout to select() for faster handling of a
+	race-condition.
+
+2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* Makefile.am:
 	* configure.ac:
 	Remove the server-side stuff from build.

@@ -22,6 +22,8 @@
 #include "gabriel-session.h"
 #include "gabriel-client.h"
 
+#define SELECT_TIMEOUT 3
+
 extern gboolean shutting_down;
 
 static gint
@@ -120,7 +122,11 @@ void gabriel_handle_client (GabrielClient * client)
             FD_ZERO (&fds);
             if (!eof)
                 FD_SET (client->sock, &fds);
-            timeout.tv_sec = 30;
+	    /* We need a timeout for the unfortunate case of getting SIGINT before 
+	     * select gets called, in which case it would happily block forever
+	     * if there is no timeout provided to it.
+ 	     */
+            timeout.tv_sec = SELECT_TIMEOUT;
             timeout.tv_usec = 0;
             ret = ssh_select (channels, outchannel, client->sock + 1, &fds, &timeout);
         } while (ret == SSH_EINTR && !shutting_down);

@@ -1,19 +1,17 @@
 Introduction
 ============
 
-Gabriel is a simple utility to enable D-Bus clients to connect to a D-Bus
-daemon running on a remote machine, through SSH.
+Gabriel is a small utility to enable D-Bus clients to connect to a D-Bus
+daemon running on a remote machine, through SSH. In simple words, gabriel
+is a proxy for a dbus daemon running on a remote machine.
 
 
 Installing Gabriel
 ======================
 
-(0) To build Gabriel client, you need to have libssh (>= 0.2) [1]
+(0) To build Gabriel, you need to have libssh (>= 0.2) [1]
     and glib (> 2.10) installed.
     
-    For Gabriel server scripts, you need socat and D-Bus (> 1.0.2)
-    installed on your machine.
-
 (1) Type:
 
     ./configure
@@ -25,43 +23,28 @@ Installing Gabriel
 Usage Notes
 =============
 
-Gabriel is composed of a client-side and a server side:
-
-The server side is actually just a small dbus configuration file and
-a pair of scripts that start and shut-down a dbus-daemon with that
-configuration file.
-
-Here is the usage for the Gabriel server scripts:
-
-    gabriel-server-start [PID_FILE]
-    gabriel-server-stop [PID_FILE]
-
-Where PID_FILE is the path to the file where the PID of the dbus-daemon
-will be stored. If no PID_FILE is specified, /tmp/gabriel-server.pid
-is assumed. 
-
-The client side is the actual thing and is therefore a binary named,
-gabriel. Following is it's usage:
+Gabriel is composed of one binary named, gabriel. Following is it's usage:
 
   gabriel [OPTION...] - Gabriel
 
-  Help Options:
-  -?, --help                  Show help options
+Help Options:
+  -?, --help                        Show help options
 
-  Application Options:
-  -h, --host=HOSTNAME         Hostname or IP of the remote host
-  -u, --username=USERNAME     Username on the remote host
-  -p, --password=PASSWORD     Password on the remote host
-  -b, --bind=LOCALHOST        The address to listen for DBus client
-                              connections on
-  -t, --port=PORT             The TCP port to listen for DBus client
-                              connections on
+Application Options:
+  -h, --host=HOSTNAME               Hostname or IP of the remote host
+  -u, --username=USERNAME           Username on the remote host
+  -p, --password=PASSWORD           Password on the remote host
+  -b, --bind=HOSTNAME               The address to listen for DBus client connections on
+  -d, --bus-address=BUS_ADDRESS     The bus address of the remote D-Bus daemon
+  -t, --port=PORT                   The TCP port to listen for DBus client connections on
 
-Upon successful launch, gabriel will inform you about the D-Bus Bus
-address you need to use for your D-Bus clients. If you launch gabriel
-without any arguments, it will try to connect to the localhost, bind
-TCP socket it listens on to the localhost at port 1337. The output
-from gabriel on successful launch in this case would be:
+
+Upon successful launch, gabriel will inform you about the D-Bus Bus address you
+need to use for your D-Bus clients. If you launch gabriel without any arguments,
+it will try to get the address of the remote bus from the
+DBUS_SESSION_BUS_ADDRESS environment variable, connect to the localhost, bind
+TCP socket it listens on to the localhost at port 1337. The output from gabriel
+on successful launch in this case would be:
 
 Listening to D-Bus clients on: "tcp:host=localhost,port=1337"
 
@@ -83,10 +66,8 @@ Known Issues
   developer has promised to make things better in this respect in the next
   release.
 
-* The server (dbus-daemon actually) should be launched by the same user
-  account as used by gabriel to authenticate to the server. This is because
-  of some strange authentication mechanism of D-Bus that I don't really
-  understand.
+* The dbus-daemon on the remote machine should be launched by the same user
+  account as used by gabriel to authenticate to that machine.
 
 
 Foot Notes
