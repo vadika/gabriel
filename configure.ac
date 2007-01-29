@@ -46,7 +46,7 @@ if test "x$build_client" = "xyes"; then
     fi
     
     dnl Check for D-Bus
-    PKG_CHECK_MODULES(DBUS,dbus-1 >= 1.0.2,HAVE_DBUS=yes,HAVE_DBUS=no)
+    PKG_CHECK_MODULES(DBUS,dbus-1 >= 0.93,HAVE_DBUS=yes,HAVE_DBUS=no)
     AC_SUBST(DBUS_LIBS)
     AC_SUBST(DBUS_CFLAGS)
 

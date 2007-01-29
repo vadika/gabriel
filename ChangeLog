@@ -1,3 +1,10 @@
+2007-01-26  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* client/gabriel-session.c: (gabriel_session_parse_bus_address):
+	Add capability to handle other tcp and unix path transports as well.
+	* configure.ac:
+	Decrease the required version of libdbus needed.
+
 2007-01-17  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* client/Makefile.am:

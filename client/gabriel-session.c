@@ -108,7 +108,6 @@ gabriel_session_parse_bus_address (GabrielSession *session)
     gint num_entries;
     DBusError error;
     const gchar *method;
-    const gchar *value;
 
     dbus_error_init (&error);
     dbus_ret = dbus_parse_address (session->bus_address,
@@ -132,22 +131,47 @@ gabriel_session_parse_bus_address (GabrielSession *session)
     method = dbus_address_entry_get_method (entries[0]);
        
     if (strcmp ("unix", method) == 0) {
-        value = dbus_address_entry_get_value (entries[0], "abstract");
+        const gchar *address = dbus_address_entry_get_value (entries[0], "abstract");
 
-        if (value != NULL) {
-            session->socat_address = g_strjoin (":", "ABSTRACT-CONNECT", value, NULL);
+        if (address != NULL) {
+            session->socat_address = g_strjoin (":", "ABSTRACT-CONNECT", address, NULL);
         }
         
         else {
+	    const gchar *address = dbus_address_entry_get_value (entries[0], "path");
+	    
+	    if (address != NULL) {
+		session->socat_address = g_strjoin (":", "UNIX-CONNECT", address, NULL);
+	    }
+
+	    else {
+		g_critical ("Failed to parse D-Bus bus address: %s\n",
+			session->bus_address);
+		return FALSE;
+	    }
+        }
+    }
+
+    else if (strcmp ("tcp", method) == 0) {
+        const gchar *host;
+        const gchar *port;
+
+        host = dbus_address_entry_get_value (entries[0], "host");
+        port = dbus_address_entry_get_value (entries[0], "port");
+
+        if (host == NULL || port == NULL) {
             g_critical ("Failed to parse D-Bus bus address: %s\n",
                         session->bus_address);
             return FALSE;
         }
+        
+        else {
+            session->socat_address = g_strjoin (":", "TCP4", host, port, NULL);
+        }
     }
 
     else {
-        g_critical ("Only Unix abstract sockets currently supported: %s\n",
-                    session->bus_address);
+        g_critical ("Only following transport methods supported yet: tcp, unix.\n");
         return FALSE;
     }
 
