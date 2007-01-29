@@ -1,5 +1,11 @@
 2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* Makefile.am:
+	* configure.ac:
+	Remove the server-side stuff from build.
+
+2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* client/Makefile.am:
 	* client/gabriel-client.c:
 	* client/gabriel-client.h:

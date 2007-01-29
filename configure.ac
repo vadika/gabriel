@@ -20,29 +20,29 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([Gabriel], [0.1], [zeenix@gstreamer.net], [gabriel])
 AC_PREREQ([2.60])
-AC_CONFIG_SRCDIR([client/gabriel-main.c])
+AC_CONFIG_SRCDIR([src/gabriel-main.c])
 AM_INIT_AUTOMAKE
 
 dnl Checks for programs.
 AC_PROG_CC
 
-dnl Check for client side dependencies
+dnl Check for dependencies
 
 dnl Check for libssh
 AC_CHECK_LIB(ssh, ssh_new,
-  build_client="yes",
-  AC_MSG_WARN("Can't find libssh. Gabriel client shall not be built.")
-  build_client="no")
+  build_gabriel="yes",
+  AC_MSG_ERROR("cannot find libssh. Gabriel shall not be built.")
+  build_gabriel="no")
 
-if test "x$build_client" = "xyes"; then
+if test "x$build_gabriel" = "xyes"; then
     dnl Check for glib2
     PKG_CHECK_MODULES(GLIB2,glib-2.0 >= 2.10,HAVE_GLIB2=yes,HAVE_GLIB2=no)
     AC_SUBST(GLIB2_LIBS)
     AC_SUBST(GLIB2_CFLAGS)
 
     if test "x$HAVE_GLIB2" = "xno"; then
-        AC_MSG_WARN([Can't find Glib2. Gabriel client shall not be built.])
-        build_client="no"
+        AC_MSG_ERROR([cannot find Glib2. Gabriel shall not be built.])
+        build_gabriel="no"
     fi
     
     dnl Check for D-Bus
@@ -51,26 +51,10 @@ if test "x$build_client" = "xyes"; then
     AC_SUBST(DBUS_CFLAGS)
 
     if test "x$HAVE_DBUS" = "xno"; then
-        AC_MSG_WARN([Can't find D-Bus. Gabriel client shall not be built.])
-        build_client="no"
+        AC_MSG_ERROR([cannot find D-Bus. Gabriel shall not be built.])
+        build_gabriel="no"
     fi
 fi
-
-AM_CONDITIONAL([BUILD_CLIENT], [test x$build_client = xyes])
-
-dnl Check for server side dependencies now
-AC_CHECK_PROG([have_socat], [socat], yes, no)
-if [test x$have_socat == xyes]; then
-    AC_CHECK_PROG([have_dbus_daemon], [dbus-daemon], yes, no)
-    if [test x$have_dbus_daemon == xno]; then
-        AC_MSG_WARN([Can't find dbus-daemon. Gabriel server shall not be built.])
-    fi
-else
-    AC_MSG_WARN([Can't find socat, Gabriel server shall not be built.])
-fi
-
-AM_CONDITIONAL([BUILD_SERVER],
-               [test x$have_socat == xyes -a x$have_dbus_daemon == xyes])
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -81,8 +65,7 @@ AC_C_CONST
 
 dnl Done.
 AC_CONFIG_FILES([Makefile
- client/Makefile
- server/Makefile
+ src/Makefile
  ])
 AC_OUTPUT
 
