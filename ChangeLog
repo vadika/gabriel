@@ -1,5 +1,20 @@
 2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* client/Makefile.am:
+	* client/gabriel-client.c:
+	* client/gabriel-client.h:
+	* client/gabriel-main.c:
+	* client/gabriel-session.c:
+	* client/gabriel-session.h:
+	* server/Makefile.am:
+	* server/gabriel-dbus.conf:
+	* server/gabriel-server-start.in:
+	* server/gabriel-server-stop:
+	- Remove server side as it's no more needed.
+	- Rename client to src as gabriel is just a proxy now.
+
+2007-01-29  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* client/gabriel-main.c: (main): Fix a small typo.
 
 2007-01-26  Zeeshan Ali  <zeenix@gstreamer.net>
