@@ -1,5 +1,9 @@
 2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* autogen.sh: Another attempt to fix the params to autoreconf.
+
+2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* src/gabriel-session.c: Fixed a small typo.
 
 2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
