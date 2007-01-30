@@ -1,5 +1,9 @@
 2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* src/gabriel-session.c: Fixed a small typo.
+
+2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* autogen.sh: Fix the params to autoreconf
 	* src/gabriel-session.c: (gabriel_create_tcp_server),
 	(gabriel_handle_clients): Put TCP server socket creation in a seperate

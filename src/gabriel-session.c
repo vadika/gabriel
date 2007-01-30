@@ -1,5 +1,5 @@
 /*
- * gabriel.c
+ * gabriel-session.c
  *
  * Part of Gabriel project
  * Copyright (C) 2007, Zeeshan Ali <zeenix@gstreamer.net>
