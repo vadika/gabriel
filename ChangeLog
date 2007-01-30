@@ -1,5 +1,10 @@
 2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* src/gabriel-session.c: (gabriel_session_parse_bus_address):
+	Fix a leak.
+
+2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* autogen.sh: Another attempt to fix the params to autoreconf.
 
 2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>

@@ -193,10 +193,12 @@ gabriel_session_parse_bus_address (GabrielSession *session)
     }
 
     else {
-        g_critical ("Only following transport methods supported yet: tcp, unix.\n");
+        g_critical ("Only following transport methods supported yet: "
+                    "tcp, unix.\n");
         return FALSE;
     }
 
+    dbus_address_entries_free (entries);
     dbus_error_free (&error);
 
     return TRUE;
