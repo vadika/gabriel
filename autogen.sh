@@ -1,3 +1,3 @@
 #!/bin/sh
 
-autoreconf -fv
+autoreconf -fsv

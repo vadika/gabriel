@@ -24,9 +24,10 @@
 
 extern gboolean shutting_down;
 
-void gabriel_handle_clients (GabrielSession * session,
-                             gchar * local_address,
-                             gint tcp_port)
+static gint
+gabriel_create_tcp_server (GabrielSession * session,
+                           gchar * local_address,
+                           gint tcp_port)
 {
     gint ret;
     gint tcp_server_sock;
@@ -36,7 +37,7 @@ void gabriel_handle_clients (GabrielSession * session,
     tcp_server_sock = socket (PF_INET, SOCK_STREAM, 0);
     if (tcp_server_sock < 0) {
 	g_critical ("%s\n", strerror (errno));
-	return;
+	return tcp_server_sock;
     }
 
     memset (&addr, 0, sizeof (struct sockaddr_in));
@@ -63,11 +64,32 @@ void gabriel_handle_clients (GabrielSession * session,
     g_print ("Listening to D-Bus clients on: \"tcp:host=%s,port=%d\"\n",
             local_address, tcp_port);
 
+    return tcp_server_sock;
+
+beach:
+    close (tcp_server_sock);
+    return -1;
+}
+
+void gabriel_handle_clients (GabrielSession * session,
+                             gchar * local_address,
+                             gint tcp_port)
+{
+    gint ret;
+    gint server_socket;
+    struct sockaddr_in addr;
+
+    /* Now the client side */
+    server_socket = gabriel_create_tcp_server (session, local_address, tcp_port);
+    if (server_socket < 0) {
+	return;
+    }
+
     while (!shutting_down) {
 	GabrielClient *client;
         gint client_sock;
 
-        client_sock = accept (tcp_server_sock, NULL, NULL);
+        client_sock = accept (server_socket, NULL, NULL);
         if (client_sock < 0) {
             if (!shutting_down) {
                 g_critical ("%s\n", strerror (errno));
@@ -81,7 +103,7 @@ void gabriel_handle_clients (GabrielSession * session,
     }
 
 beach:
-    close (tcp_server_sock);
+    close (server_socket);
 }
 
 void
