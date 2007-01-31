@@ -41,7 +41,11 @@
 #define DEFAULT_TCP_ADDRESS "localhost"
 #define DEFAULT_UNIX_ADDRESS "/tmp/gabriel"
 
+#ifdef HAVE_ABSTRACT_SOCKETS
+#define DEFAULT_DBUS_TRANSPORT "abstract-unix"
+#else
 #define DEFAULT_DBUS_TRANSPORT "unix"
+#endif /* HAVE_ABSTRACT_SOCKETS */
 
 typedef struct
 {

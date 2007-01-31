@@ -321,10 +321,17 @@ gabriel_session_create (gchar * host,
         if (strcmp (transport_method, "tcp") != 0 &&
             strcmp (transport_method, "unix") != 0 &&
             strcmp (transport_method, "abstract-unix") != 0) {
-            g_critical ("%s transport method not suppoert yet, you must specify either of these: "
+            g_critical ("%s transport method not supported yet, you must specify either of these: "
                         "tcp, unix and abstract.\n", transport_method);
             return NULL;
         }
+
+#ifndef HAVE_ABSTRACT_SOCKETS
+        else if (strcmp (transport_method, "abstract-unix") == 0) {
+            g_critical ("abstract unix sockets not supported on your platform");
+            return NULL;
+        }
+#endif
 
         session->transport_method = transport_method;
     }

@@ -1,5 +1,12 @@
 2007-01-31  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* src/gabriel-session.c: (gabriel_session_create):
+	* src/gabriel-session.h: Partial hack to only use abstract unix
+	sockets when they are available. Next step: copy&paste code to detect
+	the availability of such sockets from configure.ac in dbus source tree.
+
+2007-01-31  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* src/gabriel-session.c: (gabriel_create_unix_server):
 	More glib'ization.
 
