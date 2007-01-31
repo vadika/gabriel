@@ -66,9 +66,8 @@ gabriel_create_unix_server (GabrielSession * session,
         strncpy (addr.sun_path, bind_addr, addr_len);
     
         /* Delete the socket file if it already exists */
-        if (stat (bind_addr, &sb) == 0 &&
-                S_ISSOCK (sb.st_mode)) {
-            unlink (bind_addr);
+        if (g_file_test (bind_addr, G_FILE_TEST_EXISTS)) {
+            g_remove (bind_addr);
         }
     }
     
