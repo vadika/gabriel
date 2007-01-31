@@ -1,5 +1,13 @@
 2007-01-31  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* configure.ac:
+	* src/Makefile.am:
+	* src/gabriel-session.h:
+	copy&paste code to detect the availability of abstract socket
+	namespace from configure.in in dbus source tree.
+
+2007-01-31  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* src/gabriel-session.c: (gabriel_session_create):
 	* src/gabriel-session.h: Partial hack to only use abstract unix
 	sockets when they are available. Next step: copy&paste code to detect

@@ -33,7 +33,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <signal.h>
-#include <glib.h>
+#include <config.h>
 
 #define DEFAULT_HOST "localhost"
 

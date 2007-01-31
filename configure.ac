@@ -18,13 +18,18 @@ dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([Gabriel], [0.1], [zeenix@gstreamer.net], [gabriel])
 AC_PREREQ([2.60])
+AC_INIT([Gabriel], [0.1], [zeenix@gstreamer.net], [gabriel])
 AC_CONFIG_SRCDIR([src/gabriel-main.c])
 AM_INIT_AUTOMAKE
 
+AM_CONFIG_HEADER(config.h)
+
 dnl Checks for programs.
 AC_PROG_CC
+
+AC_ARG_ENABLE(abstract-sockets, AS_HELP_STRING([--enable-abstract-sockets],[use abstract socket namespace (linux only)]),enable_abstract_sockets=$enableval,enable_abstract_sockets=auto)
+
 
 dnl Check for dependencies
 
@@ -63,7 +68,67 @@ AC_CHECK_HEADERS(unistd.h)
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
-dnl Done.
+dnl Abstract sockets
+
+AC_LANG_PUSH(C)
+AC_CACHE_CHECK([abstract socket namespace],
+		ac_cv_have_abstract_sockets,
+		[AC_RUN_IFELSE([AC_LANG_PROGRAM(
+[[
+#include <sys/types.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <errno.h>
+]],
+[[
+  int listen_fd;
+  struct sockaddr_un addr;
+  
+  listen_fd = socket (PF_UNIX, SOCK_STREAM, 0);
+  
+  if (listen_fd < 0)
+    {
+      fprintf (stderr, "socket() failed: %s\n", strerror (errno));
+      exit (1);
+    }
+
+  memset (&addr, '\0', sizeof (addr));
+  addr.sun_family = AF_UNIX;
+  strcpy (addr.sun_path, "X/tmp/dbus-fake-socket-path-used-in-configure-test");
+  addr.sun_path[0] = '\0'; /* this is what makes it abstract */
+  
+  if (bind (listen_fd, (struct sockaddr*) &addr, SUN_LEN (&addr)) < 0)
+    {
+       fprintf (stderr, "Abstract socket namespace bind() failed: %s\n", 
+                strerror (errno));
+       exit (1);
+    }
+  else 
+    exit (0);
+]])],
+              [ac_cv_have_abstract_sockets=yes],
+              [ac_cv_have_abstract_sockets=no]
+)])
+AC_LANG_POP(C)
+
+if test x$enable_abstract_sockets = xyes; then
+    if test x$ac_cv_have_abstract_sockets = xno; then
+	AC_MSG_ERROR([Abstract sockets explicitly required, and support not detected.])
+    fi
+fi
+
+if test x$enable_abstract_sockets = xno; then
+   ac_cv_have_abstract_sockets=no;
+fi
+
+if test x$ac_cv_have_abstract_sockets = xyes ; then
+   DBUS_PATH_OR_ABSTRACT=abstract
+   AC_DEFINE(HAVE_ABSTRACT_SOCKETS,1,[Have abstract socket namespace])
+fi
+
 AC_CONFIG_FILES([Makefile
  src/Makefile
  ])
