@@ -1,5 +1,12 @@
 2007-01-31  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* src/gabriel-session.c: (gabriel_create_unix_server),
+	(gabriel_handle_clients), (gabriel_session_create):
+	* src/gabriel-session.h: Add support for emulation of unix transport
+	method.
+
+2007-01-31  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* src/gabriel-main.c: (main):
 	* src/gabriel-session.c: (gabriel_create_tcp_server),
 	(gabriel_handle_clients), (gabriel_session_create):

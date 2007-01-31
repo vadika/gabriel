@@ -24,6 +24,8 @@
 
 #include <libssh/libssh.h>
 #include <dbus/dbus.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -37,9 +39,9 @@
 
 #define DEFAULT_TCP_PORT 1337
 #define DEFAULT_TCP_ADDRESS "localhost"
-#define DEFAULT_UNIX_ADDRESS "gabriel"
+#define DEFAULT_UNIX_ADDRESS "/tmp/gabriel"
 
-#define DEFAULT_DBUS_TRANSPORT "tcp"
+#define DEFAULT_DBUS_TRANSPORT "unix"
 
 typedef struct
 {

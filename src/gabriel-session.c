@@ -25,6 +25,69 @@
 extern gboolean shutting_down;
 
 static gint
+gabriel_create_unix_server (GabrielSession * session,
+                           gchar * bind_address)
+{
+    gint ret;
+    gint unix_server_sock;
+    struct sockaddr_un addr;
+    gchar * bind_addr;
+    gint addr_len;
+    struct stat sb;
+
+    if (bind_address) {
+        bind_addr = bind_address;
+    }
+
+    else {
+        bind_addr = DEFAULT_UNIX_ADDRESS;
+    }
+
+    /* Now the client side */
+    unix_server_sock = socket (PF_UNIX, SOCK_STREAM, 0);
+    if (unix_server_sock < 0) {
+	g_critical ("%s\n", strerror (errno));
+	return unix_server_sock;
+    }
+
+    memset (&addr, 0, sizeof (struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    addr_len = strlen (bind_addr);
+    strncpy (addr.sun_path, bind_addr, addr_len);
+    
+
+    /* Delete the socket file if it already exists */
+    if (stat (bind_addr, &sb) == 0 &&
+        S_ISSOCK (sb.st_mode)) {
+        unlink (bind_addr);
+    }
+
+    ret = bind (unix_server_sock,
+               (struct sockaddr *) &addr,
+               G_STRUCT_OFFSET (struct sockaddr_un, sun_path) + addr_len);
+    if (ret != 0) {
+	g_critical ("%s\n", strerror (errno));
+	goto beach;
+    }
+    
+    ret = listen (unix_server_sock, 1024);
+    if (ret != 0) {
+        if (!shutting_down) {
+            g_critical ("%s\n", strerror (errno));
+        }
+        goto beach;
+    }
+
+    g_print ("Listening to D-Bus clients on: \"unix:path=%s\"\n", bind_addr);
+
+    return unix_server_sock;
+
+beach:
+    close (unix_server_sock);
+    return -1;
+}
+
+static gint
 gabriel_create_tcp_server (GabrielSession * session,
                            gchar * bind_address,
                            gint tcp_port)
@@ -86,10 +149,13 @@ void gabriel_handle_clients (GabrielSession * session,
 {
     gint ret;
     gint server_socket;
-    struct sockaddr_in addr;
 
     if (strcmp (session->transport_method, "tcp") == 0) {
         server_socket = gabriel_create_tcp_server (session, bind_address, tcp_port);
+    }
+    
+    else if (strcmp (session->transport_method, "unix") == 0) {
+        server_socket = gabriel_create_unix_server (session, bind_address);
     }
 
     else {
@@ -231,7 +297,8 @@ gabriel_session_create (gchar * host,
     gint ret;
    
     if (transport_method != NULL) {
-        if (strcmp (transport_method, "tcp") != 0) {
+        if (strcmp (transport_method, "tcp") != 0 &&
+            strcmp (transport_method, "unix") != 0) {
             g_critical ("%s transport method not suppoert yet, you must specify either of these: "
                         "tcp.\n", session->transport_method);
             return NULL;
