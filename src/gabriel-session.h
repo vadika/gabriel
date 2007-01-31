@@ -33,24 +33,31 @@
 #include <signal.h>
 #include <glib.h>
 
+#define DEFAULT_HOST "localhost"
+
 #define DEFAULT_TCP_PORT 1337
-#define DEFAULT_ADDRESS "localhost"
+#define DEFAULT_TCP_ADDRESS "localhost"
+#define DEFAULT_UNIX_ADDRESS "gabriel"
+
+#define DEFAULT_DBUS_TRANSPORT "tcp"
 
 typedef struct
 {
     SSH_SESSION *ssh_session;
+    gchar * transport_method;   /* D-Bus bus transport method to emulate */
     gchar *bus_address;         /* D-Bus bus address on the remote */
     gchar *socat_address;       /* socket address socat will connect */
                                 /* to, on the remote */
 } GabrielSession;
 
 GabrielSession * gabriel_session_create (gchar * host,
+                                         gchar * transport_method,
                                          gchar * bus_address,
                                          gchar * username,
                                          gchar * password);
 void gabriel_session_free (GabrielSession * session);
 void gabriel_handle_clients (GabrielSession * session,
-                             gchar * local_address,
+                             gchar * bind_address,
                              gint tcp_port);
 
 #endif /* __GABRIEL_SESSION_H__ */

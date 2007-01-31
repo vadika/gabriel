@@ -1,3 +1,11 @@
+2007-01-31  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* src/gabriel-main.c: (main):
+	* src/gabriel-session.c: (gabriel_create_tcp_server),
+	(gabriel_handle_clients), (gabriel_session_create):
+	* src/gabriel-session.h: Add ability to get the D-Bus transport method
+	to emulate from the user.
+
 2007-01-30  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* src/gabriel-session.c: (gabriel_session_parse_bus_address):

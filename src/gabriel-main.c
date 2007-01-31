@@ -48,10 +48,11 @@ main (gint argc, gchar **argv)
     GabrielSession *session;
     GOptionContext *context;
     GError *error = NULL;
-    gchar *host = DEFAULT_ADDRESS;
+    gchar *host = DEFAULT_HOST;
     gchar *username = NULL;
     gchar *password = NULL;
-    gchar *local_address = DEFAULT_ADDRESS;
+    gchar *transport_method = DEFAULT_DBUS_TRANSPORT;
+    gchar *bind_address = NULL;
     gchar *bus_address = NULL;
     gint tcp_port = DEFAULT_TCP_PORT;
     gint ret = 0;
@@ -63,8 +64,10 @@ main (gint argc, gchar **argv)
 	 "Username on the remote host", "USERNAME"},
 	{"password", 'p', 0, G_OPTION_ARG_STRING, &password,
 	 "Password on the remote host", "PASSWORD"},
-	{"bind", 'b', 0, G_OPTION_ARG_STRING, &local_address,
-	 "The address to listen for DBus client connections on", "HOSTNAME"},
+	{"method", 'm', 0, G_OPTION_ARG_STRING, &transport_method,
+	 "The D-Bus transport method to use", "DBUS_TRANSPORT_METHOD"},
+	{"bind", 'b', 0, G_OPTION_ARG_STRING, &bind_address,
+	 "The address to listen for D-Bus client connections on", "HOSTNAME"},
 	{"bus-address", 'd', 0, G_OPTION_ARG_STRING, &bus_address,
 	 "The bus address of the remote D-Bus daemon",
          "BUS_ADDRESS"},
@@ -100,14 +103,14 @@ main (gint argc, gchar **argv)
     sigaction (SIGINT, &sig_action, NULL);
     sigaction (SIGTERM, &sig_action, NULL);
    
-    session = gabriel_session_create (host, bus_address, username, password);
+    session = gabriel_session_create (host, transport_method, bus_address, username, password);
     if (session == NULL) {
         ret = -2;
         goto beach;
     }
    
     shutting_down = FALSE;
-    gabriel_handle_clients (session, local_address, tcp_port);
+    gabriel_handle_clients (session, bind_address, tcp_port);
 
     gabriel_session_free (session);
 

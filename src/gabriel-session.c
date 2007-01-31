@@ -26,12 +26,21 @@ extern gboolean shutting_down;
 
 static gint
 gabriel_create_tcp_server (GabrielSession * session,
-                           gchar * local_address,
+                           gchar * bind_address,
                            gint tcp_port)
 {
     gint ret;
     gint tcp_server_sock;
     struct sockaddr_in addr;
+    gchar * bind_addr;
+
+    if (bind_address) {
+        bind_addr = bind_address;
+    }
+
+    else {
+        bind_addr = DEFAULT_TCP_ADDRESS;
+    }
 
     /* Now the client side */
     tcp_server_sock = socket (PF_INET, SOCK_STREAM, 0);
@@ -43,7 +52,7 @@ gabriel_create_tcp_server (GabrielSession * session,
     memset (&addr, 0, sizeof (struct sockaddr_in));
     addr.sin_family = AF_INET;
     addr.sin_port = htons (tcp_port);
-    inet_aton (local_address, &(addr.sin_addr));
+    inet_aton (bind_addr, &(addr.sin_addr));
     
     ret = bind (tcp_server_sock,
                (struct sockaddr *) &addr,
@@ -62,7 +71,7 @@ gabriel_create_tcp_server (GabrielSession * session,
     }
 
     g_print ("Listening to D-Bus clients on: \"tcp:host=%s,port=%d\"\n",
-            local_address, tcp_port);
+            bind_addr, tcp_port);
 
     return tcp_server_sock;
 
@@ -72,15 +81,21 @@ beach:
 }
 
 void gabriel_handle_clients (GabrielSession * session,
-                             gchar * local_address,
+                             gchar * bind_address,
                              gint tcp_port)
 {
     gint ret;
     gint server_socket;
     struct sockaddr_in addr;
 
-    /* Now the client side */
-    server_socket = gabriel_create_tcp_server (session, local_address, tcp_port);
+    if (strcmp (session->transport_method, "tcp") == 0) {
+        server_socket = gabriel_create_tcp_server (session, bind_address, tcp_port);
+    }
+
+    else {
+        g_assert_not_reached ();
+    }
+
     if (server_socket < 0) {
 	return;
     }
@@ -206,6 +221,7 @@ gabriel_session_parse_bus_address (GabrielSession *session)
 
 GabrielSession *
 gabriel_session_create (gchar * host,
+                        gchar * transport_method,
                         gchar * bus_address,
                         gchar * username,
                         gchar * password)
@@ -213,7 +229,21 @@ gabriel_session_create (gchar * host,
     GabrielSession *session = g_new0 (GabrielSession, 1);
     SSH_OPTIONS *ssh_options;
     gint ret;
-    
+   
+    if (transport_method != NULL) {
+        if (strcmp (transport_method, "tcp") != 0) {
+            g_critical ("%s transport method not suppoert yet, you must specify either of these: "
+                        "tcp.\n", session->transport_method);
+            return NULL;
+        }
+
+        session->transport_method = transport_method;
+    }
+
+    else {
+        session->transport_method = DEFAULT_DBUS_TRANSPORT;
+    }
+ 
     session->bus_address = bus_address;
     gabriel_session_parse_bus_address (session);
     
