@@ -4,3 +4,12 @@
   but it doesn't work since libssh is not thread-safe. However the
   developer has promised to make things better in this respect in the next
   release.
+
+* Make the code more glib main-loop centric:
+
+  This would require:
+
+  1. The new CHANNEL API promised by the Aris in the next release of libssh
+  2. To write a very glib friendly (async and GIOChannel-based) wrapper around
+     libssh. This wrapper should ideally either go into libssh intself or
+     libgnet.
