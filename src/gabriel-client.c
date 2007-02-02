@@ -27,25 +27,25 @@
 extern gboolean shutting_down;
 
 static gint
-gabriel_channel_create_bridge (GabrielClient *client, CHANNEL *channel)
+gabriel_channel_create_bridge (GabrielClient * client, CHANNEL * channel)
 {
     gint ret;
     gchar *socat_cmd =
-            g_strjoin (" - ", "socat", client->session->socat_address, NULL);
+        g_strjoin (" - ", "socat", client->session->socat_address, NULL);
 
     ret = channel_open_session (channel);
     if (ret) {
-	g_critical ("Failed to open ssh session channel\n");
-	goto beach;
+        g_critical ("Failed to open ssh session channel\n");
+        goto beach;
     }
 
     ret = channel_request_exec (channel, socat_cmd);
     if (ret) {
-	g_critical ("Failed to start socat on the remote\n");
-	goto beach;
+        g_critical ("Failed to start socat on the remote\n");
+        goto beach;
     }
 
-beach:
+  beach:
     g_free (socat_cmd);
     return ret;
 }
@@ -58,19 +58,19 @@ gabriel_channel_create (GabrielClient * client)
 
     channel = channel_new (client->session->ssh_session);
     if (!channel) {
-	g_critical ("Failed to create an ssh channel\n");
-	goto beach;
+        g_critical ("Failed to create an ssh channel\n");
+        goto beach;
     }
 
     ret = gabriel_channel_create_bridge (client, channel);
     if (ret) {
-	goto finland;
+        goto finland;
     }
 
-beach:
-   return channel;
+  beach:
+    return channel;
 
-finland:
+  finland:
     channel_free (channel);
     return NULL;
 }
@@ -85,6 +85,7 @@ GabrielClient *
 gabriel_client_new (GabrielSession * session, gint sock)
 {
     GabrielClient *client = g_new0 (GabrielClient, 1);
+
     client->session = session;
     client->sock = sock;
 
@@ -94,17 +95,18 @@ gabriel_client_new (GabrielSession * session, gint sock)
 void
 gabriel_client_free (GabrielClient * client)
 {
-  close (client->sock);
-  free (client);
+    close (client->sock);
+    free (client);
 }
 
-void gabriel_handle_client (GabrielClient * client)
+void
+gabriel_handle_client (GabrielClient * client)
 {
     fd_set fds;
     struct timeval timeout;
     gchar buffer[10];
     BUFFER *readbuf = buffer_new ();
-    CHANNEL *channels[] = {NULL, NULL};
+    CHANNEL *channels[] = { NULL, NULL };
     CHANNEL *outchannel[2];
     CHANNEL *channel;
     gint lus;
@@ -116,23 +118,25 @@ void gabriel_handle_client (GabrielClient * client)
     if (channel == NULL) {
         goto beach;
     }
-   
+
     while (channel_is_open (channel) && !eof) {
         do {
             FD_ZERO (&fds);
             if (!eof)
                 FD_SET (client->sock, &fds);
-	    /* We need a timeout for the unfortunate case of getting SIGINT before 
-	     * select gets called, in which case it would happily block forever
-	     * if there is no timeout provided to it.
- 	     */
+            /* We need a timeout for the unfortunate case of getting SIGINT 
+             * before select gets called, in which case it would happily block
+             * forever if there is no timeout provided to it.
+             */
             timeout.tv_sec = SELECT_TIMEOUT;
             timeout.tv_usec = 0;
-            ret = ssh_select (channels, outchannel, client->sock + 1, &fds, &timeout);
+            ret =
+                ssh_select (channels, outchannel, client->sock + 1, &fds,
+                            &timeout);
         } while (ret == SSH_EINTR && !shutting_down);
 
         if (shutting_down) {
-           goto near_beach;
+            goto near_beach;
         }
 
         if (FD_ISSET (client->sock, &fds)) {
@@ -150,8 +154,9 @@ void gabriel_handle_client (GabrielClient * client)
             while (channel_poll (outchannel[0], 0)) {
                 lus = channel_read (outchannel[0], readbuf, 0, 0);
 
-                if(lus == -1) {
-                    g_critical ("%s\n", ssh_get_error (client->session->ssh_session));
+                if (lus == -1) {
+                    g_critical ("%s\n",
+                                ssh_get_error (client->session->ssh_session));
                     goto near_beach;
                 }
 
@@ -159,8 +164,8 @@ void gabriel_handle_client (GabrielClient * client)
                     g_message ("EOF received from the server\n");
                     eof = 1;
                     break;
-                } 
-                
+                }
+
                 else {
                     write (client->sock, buffer_get (readbuf), lus);
                 }
@@ -168,9 +173,8 @@ void gabriel_handle_client (GabrielClient * client)
         }
     }
 
-near_beach:
+  near_beach:
     gabriel_channel_free (channel);
-beach:
+  beach:
     buffer_free (readbuf);
 }
-

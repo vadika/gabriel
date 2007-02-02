@@ -30,7 +30,7 @@ typedef struct
     gint sock;
 } GabrielClient;
 
-GabrielClient * gabriel_client_new (GabrielSession * session, gint sock);
+GabrielClient *gabriel_client_new (GabrielSession * session, gint sock);
 void gabriel_client_free (GabrielClient * client);
 void gabriel_handle_client (GabrielClient * client);
 

@@ -1,3 +1,15 @@
+2007-02-02  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* src/gabriel-client.c: (gabriel_channel_create_bridge),
+	(gabriel_channel_create), (gabriel_client_new),
+	(gabriel_handle_client):
+	* src/gabriel-client.h:
+	* src/gabriel-main.c: (main):
+	* src/gabriel-session.c: (gabriel_create_unix_server),
+	(gabriel_create_tcp_server), (gabriel_handle_clients),
+	(gabriel_session_parse_bus_address), (gabriel_session_create):
+	* src/gabriel-session.h: Fixed indentation.
+
 2007-02-01  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* TODO: Add another TODO.

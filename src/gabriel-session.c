@@ -26,13 +26,12 @@ extern gboolean shutting_down;
 
 static gint
 gabriel_create_unix_server (GabrielSession * session,
-                           gchar * bind_address,
-                           gboolean abstract)
+                            gchar * bind_address, gboolean abstract)
 {
     gint ret;
     gint unix_server_sock;
     struct sockaddr_un addr;
-    gchar * bind_addr;
+    gchar *bind_addr;
     gint addr_len;
     struct stat sb;
 
@@ -47,8 +46,8 @@ gabriel_create_unix_server (GabrielSession * session,
     /* Now the client side */
     unix_server_sock = socket (PF_UNIX, SOCK_STREAM, 0);
     if (unix_server_sock < 0) {
-	g_critical ("%s\n", strerror (errno));
-	return unix_server_sock;
+        g_critical ("%s\n", strerror (errno));
+        return unix_server_sock;
     }
 
     memset (&addr, 0, sizeof (struct sockaddr_un));
@@ -64,21 +63,21 @@ gabriel_create_unix_server (GabrielSession * session,
 
     else {
         strncpy (addr.sun_path, bind_addr, addr_len);
-    
+
         /* Delete the socket file if it already exists */
         if (g_file_test (bind_addr, G_FILE_TEST_EXISTS)) {
             g_remove (bind_addr);
         }
     }
-    
+
     ret = bind (unix_server_sock,
-               (struct sockaddr *) &addr,
-               G_STRUCT_OFFSET (struct sockaddr_un, sun_path) + addr_len);
+                (struct sockaddr *) &addr,
+                G_STRUCT_OFFSET (struct sockaddr_un, sun_path) + addr_len);
     if (ret != 0) {
-	g_critical ("%s\n", strerror (errno));
-	goto beach;
+        g_critical ("%s\n", strerror (errno));
+        goto beach;
     }
-    
+
     ret = listen (unix_server_sock, 1024);
     if (ret != 0) {
         if (!shutting_down) {
@@ -88,8 +87,8 @@ gabriel_create_unix_server (GabrielSession * session,
     }
 
     g_print ("Listening to D-Bus clients on: ");
-   
-    if (abstract) { 
+
+    if (abstract) {
         g_print ("\"unix:abstract=%s\"\n", bind_addr);
     }
 
@@ -99,20 +98,19 @@ gabriel_create_unix_server (GabrielSession * session,
 
     return unix_server_sock;
 
-beach:
+  beach:
     close (unix_server_sock);
     return -1;
 }
 
 static gint
 gabriel_create_tcp_server (GabrielSession * session,
-                           gchar * bind_address,
-                           gint tcp_port)
+                           gchar * bind_address, gint tcp_port)
 {
     gint ret;
     gint tcp_server_sock;
     struct sockaddr_in addr;
-    gchar * bind_addr;
+    gchar *bind_addr;
 
     if (bind_address) {
         bind_addr = bind_address;
@@ -125,23 +123,22 @@ gabriel_create_tcp_server (GabrielSession * session,
     /* Now the client side */
     tcp_server_sock = socket (PF_INET, SOCK_STREAM, 0);
     if (tcp_server_sock < 0) {
-	g_critical ("%s\n", strerror (errno));
-	return tcp_server_sock;
+        g_critical ("%s\n", strerror (errno));
+        return tcp_server_sock;
     }
 
     memset (&addr, 0, sizeof (struct sockaddr_in));
     addr.sin_family = AF_INET;
     addr.sin_port = htons (tcp_port);
     inet_aton (bind_addr, &(addr.sin_addr));
-    
+
     ret = bind (tcp_server_sock,
-               (struct sockaddr *) &addr,
-               sizeof (struct sockaddr_in));
+                (struct sockaddr *) &addr, sizeof (struct sockaddr_in));
     if (ret != 0) {
-	g_critical ("%s\n", strerror (errno));
-	goto beach;
+        g_critical ("%s\n", strerror (errno));
+        goto beach;
     }
-    
+
     ret = listen (tcp_server_sock, 1024);
     if (ret != 0) {
         if (!shutting_down) {
@@ -151,32 +148,35 @@ gabriel_create_tcp_server (GabrielSession * session,
     }
 
     g_print ("Listening to D-Bus clients on: \"tcp:host=%s,port=%d\"\n",
-            bind_addr, tcp_port);
+             bind_addr, tcp_port);
 
     return tcp_server_sock;
 
-beach:
+  beach:
     close (tcp_server_sock);
     return -1;
 }
 
-void gabriel_handle_clients (GabrielSession * session,
-                             gchar * bind_address,
-                             gint tcp_port)
+void
+gabriel_handle_clients (GabrielSession * session,
+                        gchar * bind_address, gint tcp_port)
 {
     gint ret;
     gint server_socket;
 
     if (strcmp (session->transport_method, "tcp") == 0) {
-        server_socket = gabriel_create_tcp_server (session, bind_address, tcp_port);
+        server_socket =
+            gabriel_create_tcp_server (session, bind_address, tcp_port);
     }
-    
+
     else if (strcmp (session->transport_method, "unix") == 0) {
-        server_socket = gabriel_create_unix_server (session, bind_address, FALSE);
+        server_socket =
+            gabriel_create_unix_server (session, bind_address, FALSE);
     }
 
     else if (strcmp (session->transport_method, "abstract-unix") == 0) {
-        server_socket = gabriel_create_unix_server (session, bind_address, TRUE);
+        server_socket =
+            gabriel_create_unix_server (session, bind_address, TRUE);
     }
 
     else {
@@ -184,11 +184,11 @@ void gabriel_handle_clients (GabrielSession * session,
     }
 
     if (server_socket < 0) {
-	return;
+        return;
     }
 
     while (!shutting_down) {
-	GabrielClient *client;
+        GabrielClient *client;
         gint client_sock;
 
         client_sock = accept (server_socket, NULL, NULL);
@@ -199,12 +199,12 @@ void gabriel_handle_clients (GabrielSession * session,
             goto beach;
         }
 
-	client = gabriel_client_new (session, client_sock);
+        client = gabriel_client_new (session, client_sock);
         gabriel_handle_client (client);
-	gabriel_client_free (client);
+        gabriel_client_free (client);
     }
 
-beach:
+  beach:
     close (server_socket);
 }
 
@@ -215,7 +215,7 @@ gabriel_session_free (GabrielSession * session)
         if (session->ssh_session) {
             ssh_disconnect (session->ssh_session);
         }
-        
+
         if (session->socat_address) {
             g_free (session->socat_address);
         }
@@ -225,7 +225,7 @@ gabriel_session_free (GabrielSession * session)
 }
 
 static gboolean
-gabriel_session_parse_bus_address (GabrielSession *session)
+gabriel_session_parse_bus_address (GabrielSession * session)
 {
     gboolean dbus_ret;
     DBusAddressEntry **entries;
@@ -235,9 +235,7 @@ gabriel_session_parse_bus_address (GabrielSession *session)
 
     dbus_error_init (&error);
     dbus_ret = dbus_parse_address (session->bus_address,
-                                   &entries,
-                                   &num_entries,
-                                   &error);
+                                   &entries, &num_entries, &error);
     if (!dbus_ret || num_entries < 1) {
         if (dbus_error_is_set (&error)) {
             g_critical ("%s\n", strerror (errno));
@@ -253,26 +251,30 @@ gabriel_session_parse_bus_address (GabrielSession *session)
 
     /* We are only concerned with the first entry */
     method = dbus_address_entry_get_method (entries[0]);
-       
+
     if (strcmp ("unix", method) == 0) {
-        const gchar *address = dbus_address_entry_get_value (entries[0], "abstract");
+        const gchar *address =
+            dbus_address_entry_get_value (entries[0], "abstract");
 
         if (address != NULL) {
-            session->socat_address = g_strjoin (":", "ABSTRACT-CONNECT", address, NULL);
+            session->socat_address =
+                g_strjoin (":", "ABSTRACT-CONNECT", address, NULL);
         }
-        
-        else {
-	    const gchar *address = dbus_address_entry_get_value (entries[0], "path");
-	    
-	    if (address != NULL) {
-		session->socat_address = g_strjoin (":", "UNIX-CONNECT", address, NULL);
-	    }
 
-	    else {
-		g_critical ("Failed to parse D-Bus bus address: %s\n",
-			session->bus_address);
-		return FALSE;
-	    }
+        else {
+            const gchar *address =
+                dbus_address_entry_get_value (entries[0], "path");
+
+            if (address != NULL) {
+                session->socat_address =
+                    g_strjoin (":", "UNIX-CONNECT", address, NULL);
+            }
+
+            else {
+                g_critical ("Failed to parse D-Bus bus address: %s\n",
+                            session->bus_address);
+                return FALSE;
+            }
         }
     }
 
@@ -288,7 +290,7 @@ gabriel_session_parse_bus_address (GabrielSession *session)
                         session->bus_address);
             return FALSE;
         }
-        
+
         else {
             session->socat_address = g_strjoin (":", "TCP4", host, port, NULL);
         }
@@ -309,20 +311,20 @@ gabriel_session_parse_bus_address (GabrielSession *session)
 GabrielSession *
 gabriel_session_create (gchar * host,
                         gchar * transport_method,
-                        gchar * bus_address,
-                        gchar * username,
-                        gchar * password)
+                        gchar * bus_address, gchar * username, gchar * password)
 {
     GabrielSession *session = g_new0 (GabrielSession, 1);
     SSH_OPTIONS *ssh_options;
     gint ret;
-   
+
     if (transport_method != NULL) {
         if (strcmp (transport_method, "tcp") != 0 &&
             strcmp (transport_method, "unix") != 0 &&
             strcmp (transport_method, "abstract-unix") != 0) {
-            g_critical ("%s transport method not supported yet, you must specify either of these: "
-                        "tcp, unix and abstract.\n", transport_method);
+            g_critical
+                ("%s transport method not supported yet, you must specify"
+                 " either of these: tcp, unix and abstract.\n",
+                 transport_method);
             return NULL;
         }
 
@@ -339,10 +341,10 @@ gabriel_session_create (gchar * host,
     else {
         session->transport_method = DEFAULT_DBUS_TRANSPORT;
     }
- 
+
     session->bus_address = bus_address;
     gabriel_session_parse_bus_address (session);
-    
+
     ssh_options = ssh_options_new ();
     ssh_options_set_host (ssh_options, host);
     ssh_options_set_username (ssh_options, username);
@@ -351,56 +353,57 @@ gabriel_session_create (gchar * host,
 
     session->ssh_session = ssh_new ();
     if (!session->ssh_session) {
-	g_critical ("Failed to create ssh session\n");
-	goto finland;
+        g_critical ("Failed to create ssh session\n");
+        goto finland;
     }
     ssh_set_options (session->ssh_session, ssh_options);
 
     ret = ssh_connect (session->ssh_session);
 
     if (ret) {
-	g_critical ("Failed to open ssh connection to %s\n", host);
-	goto finland;
+        g_critical ("Failed to open ssh connection to %s\n", host);
+        goto finland;
     }
 
     ret = ssh_userauth_autopubkey (session->ssh_session);
-    
-    if (ret != SSH_AUTH_SUCCESS) {
-	if (ret == SSH_AUTH_DENIED) {
-	    g_warning ("Public key method didn't work out, "
-                     "trying password method..\n");
-        }
-    
-	if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
-            if (password == NULL) {
-               password = getpass ("Password: ");
 
-               if (password == NULL) {
-                   g_critical ("%s\n", strerror (errno));
-                   goto finland;
-               }
+    if (ret != SSH_AUTH_SUCCESS) {
+        if (ret == SSH_AUTH_DENIED) {
+            g_warning ("Public key method didn't work out, "
+                       "trying password method..\n");
+        }
+
+        if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
+            if (password == NULL) {
+                password = getpass ("Password: ");
+
+                if (password == NULL) {
+                    g_critical ("%s\n", strerror (errno));
+                    goto finland;
+                }
             }
 
-	    ret = ssh_userauth_password (session->ssh_session, username, password);
+            ret =
+                ssh_userauth_password (session->ssh_session, username,
+                                       password);
             /* Get rid of the passwd string ASAP */
             bzero (password, strlen (password));
 
-	    if (ret != SSH_AUTH_SUCCESS) {
-		g_critical ("Failed to authenticate to host: %s\n", host);
-		goto finland;
-	    }
-	}
+            if (ret != SSH_AUTH_SUCCESS) {
+                g_critical ("Failed to authenticate to host: %s\n", host);
+                goto finland;
+            }
+        }
 
-	else {
-	    g_critical ("Failed to authenticate to host %s\n", host);
-	    goto finland;
-	}
+        else {
+            g_critical ("Failed to authenticate to host %s\n", host);
+            goto finland;
+        }
     }
 
     return session;
 
-finland:
+  finland:
     gabriel_session_free (session);
     return NULL;
 }
-

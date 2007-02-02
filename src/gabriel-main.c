@@ -42,7 +42,7 @@ signal_handler (gint sig_num)
 }
 
 gint
-main (gint argc, gchar **argv)
+main (gint argc, gchar ** argv)
 {
     struct sigaction sig_action;
     GabrielSession *session;
@@ -58,22 +58,22 @@ main (gint argc, gchar **argv)
     gint ret = 0;
 
     GOptionEntry entries[] = {
-	{"host", 'h', 0, G_OPTION_ARG_STRING, &host,
-	 "Hostname or IP of the remote host", "HOSTNAME"},
-	{"username", 'u', 0, G_OPTION_ARG_STRING, &username,
-	 "Username on the remote host", "USERNAME"},
-	{"password", 'p', 0, G_OPTION_ARG_STRING, &password,
-	 "Password on the remote host", "PASSWORD"},
-	{"method", 'm', 0, G_OPTION_ARG_STRING, &transport_method,
-	 "The D-Bus transport method to use", "DBUS_TRANSPORT_METHOD"},
-	{"bind", 'b', 0, G_OPTION_ARG_STRING, &bind_address,
-	 "The address to listen for D-Bus client connections on", "HOSTNAME"},
-	{"bus-address", 'd', 0, G_OPTION_ARG_STRING, &bus_address,
-	 "The bus address of the remote D-Bus daemon",
+        {"host", 'h', 0, G_OPTION_ARG_STRING, &host,
+         "Hostname or IP of the remote host", "HOSTNAME"},
+        {"username", 'u', 0, G_OPTION_ARG_STRING, &username,
+         "Username on the remote host", "USERNAME"},
+        {"password", 'p', 0, G_OPTION_ARG_STRING, &password,
+         "Password on the remote host", "PASSWORD"},
+        {"method", 'm', 0, G_OPTION_ARG_STRING, &transport_method,
+         "The D-Bus transport method to use", "DBUS_TRANSPORT_METHOD"},
+        {"bind", 'b', 0, G_OPTION_ARG_STRING, &bind_address,
+         "The address to listen for D-Bus client connections on", "HOSTNAME"},
+        {"bus-address", 'd', 0, G_OPTION_ARG_STRING, &bus_address,
+         "The bus address of the remote D-Bus daemon",
          "BUS_ADDRESS"},
-	{"port", 't', 0, G_OPTION_ARG_INT, &tcp_port,
-	 "The TCP port to listen for DBus client connections on", "PORT"},
-	{NULL}
+        {"port", 't', 0, G_OPTION_ARG_INT, &tcp_port,
+         "The TCP port to listen for DBus client connections on", "PORT"},
+        {NULL}
     };
 
     context = g_option_context_new ("- Gabriel");
@@ -102,18 +102,20 @@ main (gint argc, gchar **argv)
     sig_action.sa_handler = signal_handler;
     sigaction (SIGINT, &sig_action, NULL);
     sigaction (SIGTERM, &sig_action, NULL);
-   
-    session = gabriel_session_create (host, transport_method, bus_address, username, password);
+
+    session =
+        gabriel_session_create (host, transport_method, bus_address, username,
+                                password);
     if (session == NULL) {
         ret = -2;
         goto beach;
     }
-   
+
     shutting_down = FALSE;
     gabriel_handle_clients (session, bind_address, tcp_port);
 
     gabriel_session_free (session);
 
-beach:
+  beach:
     return ret;
 }
