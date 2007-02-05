@@ -97,7 +97,7 @@ AC_CACHE_CHECK([abstract socket namespace],
 
   memset (&addr, '\0', sizeof (addr));
   addr.sun_family = AF_UNIX;
-  strcpy (addr.sun_path, "X/tmp/dbus-fake-socket-path-used-in-configure-test");
+  strcpy (addr.sun_path, "X/tmp/gabriel-fake-socket-path-for-configure-test");
   addr.sun_path[0] = '\0'; /* this is what makes it abstract */
   
   if (bind (listen_fd, (struct sockaddr*) &addr, SUN_LEN (&addr)) < 0)
