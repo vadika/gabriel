@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "gabriel-session.h"
+#include "gabriel.h"
 
 gboolean shutting_down;
 
@@ -45,7 +45,7 @@ gint
 main (gint argc, gchar ** argv)
 {
     struct sigaction sig_action;
-    GabrielSession *session;
+    Gabriel *gabriel;
     GOptionContext *context;
     GError *error = NULL;
     gchar *host = DEFAULT_HOST;
@@ -84,7 +84,7 @@ main (gint argc, gchar ** argv)
         bus_address = (gchar *) g_getenv ("DBUS_SESSION_BUS_ADDRESS");
 
         if (bus_address == NULL) {
-            g_critical ("The address of the D-Bus session bus must be"
+            g_critical ("The address of the D-Bus gabriel bus must be"
                         "provided either using the commandline option"
                         "or the environment varriable"
                         "'DBUS_SESSION_BUS_ADDRESS'\n");
@@ -103,18 +103,18 @@ main (gint argc, gchar ** argv)
     sigaction (SIGINT, &sig_action, NULL);
     sigaction (SIGTERM, &sig_action, NULL);
 
-    session =
-        gabriel_session_create (host, transport_method, bus_address, username,
+    gabriel =
+        gabriel_create (host, bus_address, username,
                                 password);
-    if (session == NULL) {
+    if (gabriel == NULL) {
         ret = -2;
         goto beach;
     }
 
     shutting_down = FALSE;
-    gabriel_handle_clients (session, bind_address, tcp_port);
+    gabriel_handle_clients (gabriel, transport_method, bind_address, tcp_port);
 
-    gabriel_session_free (session);
+    gabriel_free (gabriel);
 
   beach:
     return ret;

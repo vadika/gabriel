@@ -23,8 +23,8 @@ bin_PROGRAMS = gabriel
 
 INCLUDES = $(GLIB2_CFLAGS) $(DBUS_CFLAGS) -DDBUS_API_SUBJECT_TO_CHANGE
 
-gabriel_SOURCES = gabriel-main.c gabriel-session.c gabriel-client.c
+gabriel_SOURCES = gabriel-main.c gabriel.c gabriel-client.c
 gabriel_LDFLAGS = $(GLIB2_LIBS) $(DBUS_LIBS) -lssh
 
-noinst_HEADERS = gabriel-session.h gabriel-client.h
+noinst_HEADERS = gabriel.h gabriel-client.h
 

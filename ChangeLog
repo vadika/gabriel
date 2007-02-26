@@ -1,5 +1,16 @@
 2007-02-27  Zeeshan Ali  <zeenix@gstreamer.net>
 
+	* src/Makefile.am:
+	* src/gabriel-client.c: (gabriel_channel_create_bridge),
+	(gabriel_channel_create), (gabriel_client_new),
+	(gabriel_handle_client):
+	* src/gabriel-client.h:
+	* src/gabriel-main.c: (main):
+	* src/gabriel-session.c:
+	* src/gabriel-session.h: Rename module GabrielSession to Gabriel.
+
+2007-02-27  Zeeshan Ali  <zeenix@gstreamer.net>
+
 	* configure.ac: Fix another copy&paste mistake.
 
 2007-02-05  Zeeshan Ali  <zeenix@gstreamer.net>

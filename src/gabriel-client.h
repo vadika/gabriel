@@ -22,15 +22,15 @@
 #ifndef __GABRIEL_CLIENT_H__
 #define __GABRIEL_CLIENT_H__
 
-#include "gabriel-session.h"
+#include "gabriel.h"
 
 typedef struct
 {
-    GabrielSession *session;
+    Gabriel *gabriel;
     gint sock;
 } GabrielClient;
 
-GabrielClient *gabriel_client_new (GabrielSession * session, gint sock);
+GabrielClient *gabriel_client_new (Gabriel * gabriel, gint sock);
 void gabriel_client_free (GabrielClient * client);
 void gabriel_handle_client (GabrielClient * client);
 

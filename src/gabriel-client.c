@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "gabriel-session.h"
+#include "gabriel.h"
 #include "gabriel-client.h"
 
 #define SELECT_TIMEOUT 3
@@ -31,7 +31,7 @@ gabriel_channel_create_bridge (GabrielClient * client, CHANNEL * channel)
 {
     gint ret;
     gchar *socat_cmd =
-        g_strjoin (" - ", "socat", client->session->socat_address, NULL);
+        g_strjoin (" - ", "socat", client->gabriel->socat_address, NULL);
 
     ret = channel_open_session (channel);
     if (ret) {
@@ -56,7 +56,7 @@ gabriel_channel_create (GabrielClient * client)
     CHANNEL *channel = NULL;
     gint ret;
 
-    channel = channel_new (client->session->ssh_session);
+    channel = channel_new (client->gabriel->ssh_session);
     if (!channel) {
         g_critical ("Failed to create an ssh channel\n");
         goto beach;
@@ -82,11 +82,11 @@ gabriel_channel_free (CHANNEL * channel)
 }
 
 GabrielClient *
-gabriel_client_new (GabrielSession * session, gint sock)
+gabriel_client_new (Gabriel * gabriel, gint sock)
 {
     GabrielClient *client = g_new0 (GabrielClient, 1);
 
-    client->session = session;
+    client->gabriel = gabriel;
     client->sock = sock;
 
     return client;
@@ -156,7 +156,7 @@ gabriel_handle_client (GabrielClient * client)
 
                 if (lus == -1) {
                     g_critical ("%s\n",
-                                ssh_get_error (client->session->ssh_session));
+                                ssh_get_error (client->gabriel->ssh_session));
                     goto near_beach;
                 }
 
