@@ -125,7 +125,6 @@ if test x$enable_abstract_sockets = xno; then
 fi
 
 if test x$ac_cv_have_abstract_sockets = xyes ; then
-   DBUS_PATH_OR_ABSTRACT=abstract
    AC_DEFINE(HAVE_ABSTRACT_SOCKETS,1,[Have abstract socket namespace])
 fi
 
