@@ -358,7 +358,7 @@ gabriel_create (gchar * host,
         goto finland;
     }
 
-    ret = ssh_userauth_autopubkey (gabriel->ssh_session);
+    ret = ssh_userauth_autopubkey (gabriel->ssh_session, NULL);
 
     if (ret != SSH_AUTH_SUCCESS) {
         if (ret == SSH_AUTH_DENIED) {

@@ -152,7 +152,7 @@ gabriel_handle_client (GabrielClient * client)
 
         if (outchannel[0]) {
             while (channel_poll (outchannel[0], 0)) {
-                lus = channel_read (outchannel[0], readbuf, 0, 0);
+                lus = channel_read_buffer (outchannel[0], readbuf, 0, 0);
 
                 if (lus == -1) {
                     g_critical ("%s\n",
