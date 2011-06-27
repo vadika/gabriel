@@ -362,24 +362,61 @@ gabriel_create (gchar * host,
     if (ret != SSH_AUTH_SUCCESS) {
         if (ret == SSH_AUTH_DENIED) {
             g_warning ("Public key method didn't work out, "
-                       "trying password method..\n");
+                       "trying keyboard-interactive..\n");
         }
 
         if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
             if (password == NULL) {
-                password = getpass ("Password: ");
+                // Attempt keyboard-interactive
+                ret = ssh_userauth_kbdint(gabriel->ssh_session, username, NULL);
 
-                if (password == NULL) {
-                    g_critical ("%s\n", strerror (errno));
-                    goto finland;
+                while (ret == SSH_AUTH_INFO) {
+                    const char *name, *instruction;
+                    int cur, n;
+
+                    name = ssh_userauth_kbdint_getname (gabriel->ssh_session);
+                    instruction = ssh_userauth_kbdint_getinstruction (gabriel->ssh_session);
+                    n = ssh_userauth_kbdint_getnprompts (gabriel->ssh_session);
+                    g_print ("%s\n%s\n", name, instruction);
+
+                    for (cur = 0; cur < n; cur++) {
+                        char echo; // TODO: respect this
+                        char *prompt, *answer;
+                        prompt = ssh_userauth_kbdint_getprompt(gabriel->ssh_session, cur, &echo);
+                        answer = getpass(prompt);
+                        if (ssh_userauth_kbdint_setanswer (gabriel->ssh_session, cur, answer) < 0) {
+                            ret = SSH_AUTH_DENIED;
+                            bzero (answer, strlen (answer));
+                            break;
+                        }
+                        bzero (answer, strlen (answer));
+                    }
+
+                    ret = ssh_userauth_kbdint(gabriel->ssh_session, username, NULL);
+                }
+
+                // Attempt password
+                if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
+                    if (ret == SSH_AUTH_DENIED) {
+                        g_warning ("Trying password authentication\n");
+                    }
+                    password = getpass ("Password: ");
+
+                    if (password == NULL) {
+                        g_critical ("%s\n", strerror (errno));
+                        goto finland;
+                    }
                 }
             }
-
-            ret =
-                ssh_userauth_password (gabriel->ssh_session, username,
-                                       password);
+            if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
+                ret =
+                    ssh_userauth_password (gabriel->ssh_session, username,
+                                           password);
+            }
             /* Get rid of the passwd string ASAP */
-            bzero (password, strlen (password));
+            if(password != NULL) {
+                bzero (password, strlen (password));
+            }
 
             if (ret != SSH_AUTH_SUCCESS) {
                 g_critical ("Failed to authenticate to host: %s\n", host);
