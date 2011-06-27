@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <stdlib.h> //free()
 #include "gabriel.h"
 #include "gabriel-client.h"
 
@@ -27,7 +28,7 @@
 extern gboolean shutting_down;
 
 static gint
-gabriel_channel_create_bridge (GabrielClient * client, CHANNEL * channel)
+gabriel_channel_create_bridge (GabrielClient * client, ssh_channel channel)
 {
     gint ret;
     gchar *socat_cmd =
@@ -50,10 +51,10 @@ gabriel_channel_create_bridge (GabrielClient * client, CHANNEL * channel)
     return ret;
 }
 
-static CHANNEL *
+static ssh_channel
 gabriel_channel_create (GabrielClient * client)
 {
-    CHANNEL *channel = NULL;
+    ssh_channel channel = NULL;
     gint ret;
 
     channel = channel_new (client->gabriel->ssh_session);
@@ -76,7 +77,7 @@ gabriel_channel_create (GabrielClient * client)
 }
 
 static void
-gabriel_channel_free (CHANNEL * channel)
+gabriel_channel_free (ssh_channel channel)
 {
     channel_free (channel);
 }
@@ -105,10 +106,10 @@ gabriel_handle_client (GabrielClient * client)
     fd_set fds;
     struct timeval timeout;
     gchar buffer[10];
-    BUFFER *readbuf = buffer_new ();
-    CHANNEL *channels[] = { NULL, NULL };
-    CHANNEL *outchannel[2];
-    CHANNEL *channel;
+    ssh_buffer readbuf = buffer_new ();
+    ssh_channel channels[] = { NULL, NULL };
+    ssh_channel outchannel[2];
+    ssh_channel channel;
     gint lus;
     gint eof = 0;
     gint ret;

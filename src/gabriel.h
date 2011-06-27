@@ -49,7 +49,7 @@
 
 typedef struct
 {
-    SSH_SESSION *ssh_session;
+    ssh_session ssh_session;
     gchar *transport_method;    /* D-Bus bus transport method to emulate */
     gchar *bus_address;         /* D-Bus bus address on the remote */
     gchar *socat_address;       /* socket address socat will connect */

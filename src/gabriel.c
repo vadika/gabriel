@@ -332,24 +332,23 @@ gabriel_create (gchar * host,
                         gchar * password)
 {
     Gabriel *gabriel = g_new0 (Gabriel, 1);
-    SSH_OPTIONS *ssh_options;
     gint ret;
 
     gabriel->bus_address = bus_address;
     gabriel_parse_bus_address (gabriel);
 
-    ssh_options = ssh_options_new ();
-    ssh_options_set_host (ssh_options, host);
-    ssh_options_set_username (ssh_options, username);
-    ssh_options_set_ssh_dir (ssh_options, "%s/.ssh");
-    ssh_options_set_identity (ssh_options, "id_dsa");
-
+    //SSH API changes... now options are part of a session
     gabriel->ssh_session = ssh_new ();
     if (!gabriel->ssh_session) {
         g_critical ("Failed to create ssh session\n");
         goto finland;
     }
-    ssh_set_options (gabriel->ssh_session, ssh_options);
+
+    ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_HOST, host);
+    ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_USER, username);
+    // Should this be hardcoded like this?
+    ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_SSH_DIR, "%s/.ssh");
+    ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_IDENTITY, "id_dsa");
 
     ret = ssh_connect (gabriel->ssh_session);
 
