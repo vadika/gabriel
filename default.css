@@ -1,0 +1,15 @@
+img
+{
+    border:0;
+}
+
+p.terminal
+{
+    margin: 15px;
+    padding: 15px;
+    background: #000;
+    border: solid 1px #d3d7cf;
+    color: white;
+    width: 90%;
+    font: small/110% "Courier New", Courier;
+}

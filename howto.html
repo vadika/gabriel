@@ -1,0 +1,177 @@
+<!-- Header Start -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Howto to intercomunicate processes in different(remote) machines through DBus</title>
+    <link href="default.css" rel="stylesheet" type="text/css" media="screen" />
+    <meta name='copyright' content='El Demonio Negro' />
+  </head>
+  <body>
+    <h2 class="title">HOWTO: Intercomunicate processes in different(remote) machines through DBus</h2>
+    <br class="clear" />
+    <div class="content">
+      <h4>Introduction</h4>
+      <p>In this post I&#8217;m going to try to connect two processes in different machines through DBus. The method is a little bit complex, so be patient if you try.<br />
+	Also is to advert that this has been the result of 3 days of tests (<a href="#reference1">reference1</a>). So maybe this method may be improved with time and use <a href="#reference2">reference2</a>.</p>
+      <h4>Tools (The actors)</h4>
+      <ul>
+
+	<li>dbus</li>
+	<li>gabriel
+	  <ul>
+	    <li>socat</li>
+	    <li>libssh</li>
+	  </ul>
+	</li>
+	<li><abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr></li>
+	<li>your apps</li>
+      </ul>
+      <p>Debian official packages are dbus libssh-2 socat<br />
+
+	gabriel is not part of Debian yet (but I&#8217;ve build one for myself)</p>
+      <h4>Knowledge (Actors curriculum)</h4>
+      <p>In this section I will describe the basics about the tools we are going to use.</p>
+      <p><strong>DBus</strong>. Extracted from <a href="http://www.freedesktop.org/wiki/Software/dbus">DBus page</a>:</p>
+      <blockquote><p><strong>D-Bus is a message bus system, a simple way for applications to talk to one another</strong>. In addition to interprocess communication, D-Bus helps coordinate process lifecycle; it makes it simple and reliable to code a &#8220;single instance&#8221; application or daemon, and to launch applications and daemons on demand when their services are needed.</p></blockquote>
+      <blockquote><p>D-Bus <strong>supplies both a system daemon</strong> (for events such as &#8220;new hardware device added&#8221; or &#8220;printer queue changed&#8221;) <strong>and a per-user-login-session daemon</strong> (for general IPC needs among user applications). Also, the message bus is built on top of a general one-to-one message passing framework, which can be used by any two apps to communicate directly (without going through the message bus daemon). <strong>Currently the communicating applications are on one computer</strong>, or through unencrypted <abbr title="Transmission Control Protocol" xml:lang="en" lang="en">TCP</abbr>/IP suitable for use behind a firewall with shared NFS home directories.</p></blockquote>
+
+      <p><strong>Gabriel</strong> is a simple utility to enable D-Bus clients to connect to a D-Bus daemon running on a remote machine, through <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr>.<br />
+	This is the main piece of this puzzle. If you are interested in understanding how it works you should take a look at socat and libssh.</p>
+      <p>Extracted from <strong>socat</strong> man page:</p>
+      <blockquote><p>socat - Multipurpose relay (SOcket CAT)<br />
+	  socat  is a command line based utility that <strong>establishes two bidirectional byte streams and transfers data between them</strong>. Because the streams can be constructed from a large set of different types of data sinks and sources (see address types), and because lots of address options may be applied to the streams, socat can be used for many different purposes.  It might be one of the tools that one ‘has already needed´.</p></blockquote>
+
+      <p><strong>Libssh</strong>. Extracted from <a href="http://0xbadc0de.be/wiki/libssh:libssh">libssh page</a>:</p>
+      <blockquote><p>The <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> library was designed to be used by programmers needing a working <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> implementation by the mean of a library. The complete control of the client is made by the programmer. With libssh, you can remotely execute programs, transfer files, use a secure and transparent tunnel for your remote programs. With its Secure <abbr title="File Transfer Protocol" xml:lang="en" lang="en">FTP</abbr> implementation, you can play with remote files easily, without third-party programs others than libcrypto (from openssl). </p></blockquote>
+      <p>You should know about <strong><abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr></strong> and about <strong>your application</strong>.</p>
+
+      <h4>Architecture</h4>
+      <p>Local host will run gabriel and your application.<br />
+	Remove host will need a running <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> server, a running dbus server and will need socat installed and ready to use.<br />
+	We need to run gabriel, that will act as a server that will connect our host to the remote host through <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr>. After that gabriel will use this <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> connection to intercommunicate our local application with remote DBus applications by using socat. </p>
+      <div class="g2image_centered">
+
+	<div class="wpg2tag-image"><img src="Remote+DBus+communication.png" width="640" height="452" alt="Remote DBus communication" longdesc="Remote hosts DBus intercommunication"/>
+	  <p class="giDescription">Remote DBus communication</p>
+	</div>
+      </div>
+      <h4>Howto (Main action)</h4>
+      <p><del datetime="2008-05-22T14:55:35+00:00">At the moment I&#8217;ve only achieved to connect a process using session-bus, I&#8217;m still testing until I get connection through system-bus which was my initial purpose.</del><br />
+	After reading next information, you will be able to connect using session bus and system bus.</p>
+      <p>As I commented somewhere else, I&#8217;ve made some modifications on gabriel code. I needed some common parameters as <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> port (my virtualbox testing environment ), better help explanations or add a verbose output.<br />
+
+	Gabriel establish a connection with the remote <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> and by socat commands it communicates with the remote DBus &#8220;environment&#8221;. You should administrate <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> parameters and Dbus parameters to gabriel.</p>
+      <p class="terminal">
+	user@machine:~/svn/gabriel/gabriel$ src/gabriel &#8211;help<br />
+	Usage:<br />
+	gabriel [OPTION...] - Gabriel<br />
+
+	Help Options:<br />
+	-?, &#8211;help                             Show help options<br />
+	Application Options:<br />
+	-h, &#8211;host=HOSTNAME                    Hostname or <abbr title="Internet Protocol" xml:lang="en" lang="en">IP</abbr> of the remote host<br />
+	-p, &#8211;port-s<span></span>sh=PORT-<span></span><abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr>                <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> port on the remote host<br />
+
+	-u, &#8211;username=USERNAME                <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> username on the remote host<br />
+	-w, &#8211;password=PASSWORD                <abbr title="Secure SHell (encrypted protocol replaces telnet and FTP)" xml:lang="en" lang="en">SSH</abbr> password on the remote host<br />
+	-m, &#8211;method=DBUS_TRANSPORT_METHOD     The D-Bus transport method to use (<abbr title="Transmission Control Protocol" xml:lang="en" lang="en">TCP</abbr>, <abbr title="Uniplexed Information and Computing System" xml:lang="en" lang="en">UNIX</abbr>, abstract-<abbr title="Uniplexed Information and Computing System" xml:lang="en" lang="en">UNIX</abbr>)<br />
+
+	-b, &#8211;bind=HOSTNAME                    The bind-address to listen for D-Bus client connections on<br />
+	-d, &#8211;bus-address=BUS_ADDRESS          The DBus session bus address of the remote D-Bus daemon<br />
+	-t, &#8211;port-t<span></span>cp=PORT-T<span></span>CP                The <abbr title="Transmission Control Protocol" xml:lang="en" lang="en">TCP</abbr> port to listen for DBus client connections on<br />
+
+	-v, &#8211;verbose=VERBOSE                  Set verbosity level (3, 2, 1, 0, -1)=(packet,protocol,functions,important,none)
+      </p>
+      <p><strong>We have to put special attention to <em>-d, &#8211;bus-address=BUS_ADDRESS</em> because this info must be gotten from the REMOTE machine</strong>.<br />
+	That address is the one used by processes to communicate through DBUS. It&#8217;s something &#8220;internal&#8221; and automatically done when you use DBus <abbr title="Application Programming Interface" xml:lang="en" lang="en">API</abbr>/library. I&#8217;m going to show you where to get it.</p>
+
+      <h5>DBUS_SESSION_BUS_ADDRESS, DBUS_SYSTEM_BUS_ADDRESS, DBUS_SYSTEM_BUS_DEFAULT_ADDRESS</h5>
+      <p><strong>Again, this info should be gotten from REMOTE machine.</strong><br />
+	At the moment I don&#8217;t know any nice command where to get this info.<br />
+	We have two main options of DBus buses. System and Session (more info in <a href="http://www.freedesktop.org/wiki/Software/dbus">DBus page</a>).<br />
+	If you need SESSION bus address, you can choose what it better fits you:</p>
+      <ul>
+	<li>You can can get it from process environment</li>
+	<li>You can stole it from any other process suspicious from being involved in DBus activities&#8230;</li>
+
+	<li>You can create your own dbus-daemon (which, actually, I don&#8217;t know if it uses it&#8217;s own BUS_ADDRESS)</li>
+      </ul>
+      <p>If you need SYSTEM bus address, you can choose what it better fits you:</p>
+      <ul>
+	<li>You can can get it from process environment. If it&#8217;s not defined, take a look at /etc/dbus-1/system.conf where you should locate a string like <em>&lt;listen&gt;unix:path=/var/run/dbus/system_bus_socket&lt;/listen&gt;</em>
+	</li>
+	<li>You can stole it from any other process suspicious from being involved in DBus activities&#8230;</li>
+
+      </ul>
+      <p>Examples:</p>
+      <p class="terminal">
+	// C++ code<br />
+	#include &lt;stdio.h&gt;<br />
+	#include &lt;stdlib.h&gt;<br />
+	char * env;<br />
+	//	env = getenv (&#8221;DBUS_SESSION_BUS_ADDRESS&#8221;);<br />
+
+	env = getenv (&#8221;DBUS_SYSTEM_BUS_ADDRESS&#8221;);<br />
+	if (env!=NULL){<br />
+	cout &lt;&lt; env &lt;&lt; endl;<br />
+	}
+
+      </p>
+      <p class="terminal">
+	user@<strong>REMOTE-machine</strong>:~ $  grep -z BUS_ADDRESS /proc/2047/environ<br />
+	HALD_RUNNER_DBUS_ADDRESS=unix:abstract=/var/run/hald/dbus-bonbZtoykd,guid=8b5aff565de0dc7c467fef414832dd98
+      </p>
+      <p>This command gives you a dbus-daemon in your session with the one you can contact.</p>
+      <p class="terminal">
+	user@<strong>REMOTE-machine</strong>:~ $ dbus-daemon &#8211;session &#8211;print-address<br />
+
+	unix:abstract=/tmp/dbus-j2npbTXDwD,guid=d69f66d43e354de5733e4a1a48335bd6
+      </p>
+      <p class="terminal">
+	user@<strong>REMOTE-machine</strong>:~ $  grep u<span></span>nix /etc/dbus-1/system.conf<br />
+	&lt;listen&gt;unix:path=/var/run/dbus/system_bus_socket&lt;/listen&gt;
+      </p>
+      <h4>Howto (Main action): Back to local host</h4>
+      <p>Those ugly unix:stri:ngs/asdkaj/numbers we have seen is what we need for<em> -d, &#8211;bus-address=BUS_ADDRESS</em>.<br />
+
+	See a session example:</p>
+      <p class="terminal">
+	user@machine:~/svn/gabriel/gabriel$ src/gabriel -h localhost -p 2222 -d unix:abstract=/tmp/dbus-j2npbTXDwD,guid=d69f66d43e354de5733e4a1a48335bd6<br />
+	Listening to D-Bus clients on: &#8220;unix:abstract=/tmp/gabriel&#8221;<br />
+	bla ble blu bla
+      </p>
+      <p>See a system example:</p>
+      <p class="terminal">
+	user@machine:~/svn/gabriel/gabriel$ src/gabriel -h localhost -p 2222 -d unix:path=/var/run/dbus/system_bus_socket<br />
+	Listening to D-Bus clients on: &#8220;unix:abstract=/tmp/gabriel&#8221;<br />
+
+	bla ble blu bla
+      </p>
+      <p>The moment we have or gabriel server running we (may have nothing) need to set DBUS_XXX_BUS_ADDRESS. Many apps would use, or have, this environment variable to connect to a DBus instance and intercommunicate with other process.<br />
+	This is is easy, DBUS_XXX_BUS_ADDRESS should be the address gabriel shows few instants after being launched.<br />
+	When we have defined this environment variable (in command line) we can execute our app, and it will happily communicate with the remote DBus world.<br />
+	Example:</p>
+      <p class="terminal">
+	user@machine:~/svn/dbusmm/trunk/examples/glib$ export DBUS_SESSION_BUS_ADDRESS=&#8221;unix:abstract=/tmp/gabriel&#8221;<br />
+	user@machine:~/svn/dbusmm/trunk/examples/glib$ ./dbus-browser
+      </p>
+      <p><em>dbus-browser is a program that uses a session bus.</em></p>
+
+      <h5>Links and references</h5>
+
+      <ul>
+	<li><a href="http://www.freedesktop.org/wiki/Software/dbus">dbus site</a></li>
+	<li><a href="http://gabriel.sourceforge.net/">gabriel site</a></li>
+	<li><a href="http://www.dest-unreach.org/socat/">socat site</a></li>
+	<li><a href="http://0xbadc0de.be/?part=libssh">libssh site</a></li>
+	<li><a name="reference1">reference 1</a>. (informational note, it had implied jumping into gabriel, libssh, and dbus code and testing with a virtualbox machine)</li>
+	<li><a name="reference2">reference 2</a>. (personal note, take a look at &#8220;Securing traffic between two socat instances using <abbr title="Secure Sockets Layer (a security protocol)" xml:lang="en" lang="en">SSL</abbr>&#8221; article in socat page)</li>
+      </ul>
+    </div>
+    <hr />
+    <div>
+      This page was originally created by <a href="http://www.eldemonionegro.com/wordpress/archivos/2008/05/22/howto-to-intercomunicate-processes-in-differentremote-machines-through-dbus">El Demonio Negro</a> and is distributed under a <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons License</a>
+    </div>
+  </body>
+</html>
