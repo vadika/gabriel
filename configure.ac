@@ -18,12 +18,12 @@ dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.60])
-AC_INIT([Gabriel], [0.2], [nedko@arnaudov.name], [gabriel])
+AC_PREREQ([2.71])
+AC_INIT([Gabriel],[0.2],[nedko@arnaudov.name],[gabriel])
 AC_CONFIG_SRCDIR([src/gabriel-main.c])
 AM_INIT_AUTOMAKE
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -62,7 +62,6 @@ if test "x$build_gabriel" = "xyes"; then
 fi
 
 dnl Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS(unistd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
