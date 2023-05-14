@@ -19,7 +19,7 @@ dnl
 
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.71])
-AC_INIT([Gabriel],[0.2],[nedko@arnaudov.name],[gabriel])
+AC_INIT([Gabriel],[0.2],[],[gabriel])
 AC_CONFIG_SRCDIR([src/gabriel-main.c])
 AM_INIT_AUTOMAKE
 
