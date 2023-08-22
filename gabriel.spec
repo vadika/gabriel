@@ -1,11 +1,12 @@
 Name:           gabriel
-Version:        0.1
+Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Gabriel is a DBUS-proxy to connect hosts over DBUS 
 
 License:        GPLv3+
 URL:           https://gitea.ladish.org/LADI/gabriel
-Source0:       https://github.com/vadika/gabriel/archive/refs/tags/gabriel-0.1.tar.gz
+
+Source0:       %{name}-%{version}.tar.gz
 
 BuildRequires: dbus automake autoconf
 Requires: dbus      
@@ -35,5 +36,8 @@ Requires: dbus
 
 
 %changelog
+* Tue Aug 22 2023 vadik likholetov <vadikas@gmail.com> 0.1.0-1
+- new package built with tito
+
 * Mon Aug 21 2023 vadik likholetov
 - 
