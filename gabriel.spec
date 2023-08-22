@@ -8,7 +8,7 @@ URL:           https://gitea.ladish.org/LADI/gabriel
 
 Source0:       %{name}-%{version}.tar.gz
 
-BuildRequires: dbus automake autoconf
+BuildRequires: dbus automake autoconf gcc
 Requires: dbus      
 
 %description
