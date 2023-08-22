@@ -1,5 +1,5 @@
 Name:           gabriel
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}
 Summary:        Gabriel is a DBUS-proxy to connect hosts over DBUS 
 
@@ -36,6 +36,14 @@ Requires: dbus
 
 
 %changelog
+* Tue Aug 22 2023 vadik likholetov <vadikas@gmail.com> 0.1.1-1
+- Update gabriel.spec (vadikas@gmail.com)
+- Update gabriel.spec (vadikas@gmail.com)
+
+* Tue Aug 22 2023 vadik likholetov <vadikas@gmail.com>
+- Update gabriel.spec (vadikas@gmail.com)
+- Update gabriel.spec (vadikas@gmail.com)
+
 * Tue Aug 22 2023 vadik likholetov <vadikas@gmail.com> 0.1.0-1
 - new package built with tito
 
