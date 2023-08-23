@@ -73,12 +73,19 @@ main (gint argc, gchar ** argv)
          "BUS_ADDRESS"},
         {"port", 't', 0, G_OPTION_ARG_INT, &tcp_port,
          "The TCP port to listen for DBus client connections on", "PORT"},
-        {NULL}
+        G_OPTION_ENTRY_NULL
     };
+
+
 
     context = g_option_context_new ("- Gabriel");
     g_option_context_add_main_entries (context, entries, NULL);
-    g_option_context_parse (context, &argc, &argv, &error);
+    if (!g_option_context_parse (context, &argc, &argv, &error))
+    {
+        g_critical ("Failed to parse commandline arguments: %s\n",
+                    error->message);
+        ret = -1;
+        goto beach;}
 
     if (bus_address == NULL) {
         bus_address = (gchar *) g_getenv ("DBUS_SESSION_BUS_ADDRESS");
@@ -95,6 +102,7 @@ main (gint argc, gchar ** argv)
 
     if (username == NULL) {
         username = (gchar *) g_get_user_name ();
+        g_critical("Username is %s", username);
     }
 
     /* set the unix signals */

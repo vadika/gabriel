@@ -325,6 +325,84 @@ gabriel_parse_bus_address (Gabriel * gabriel)
     return TRUE;
 }
 
+
+int verify_knownhost(ssh_session session)
+{
+    enum ssh_known_hosts_e state;
+    unsigned char *hash = NULL;
+    ssh_key srv_pubkey = NULL;
+    size_t hlen;
+    char buf[10];
+    char *hexa;
+    char *p;
+    int cmp;
+    int rc;
+    rc = ssh_get_server_publickey(session, &srv_pubkey);
+    if (rc < 0) {
+        return -1;
+    }
+    rc = ssh_get_publickey_hash(srv_pubkey,
+                                SSH_PUBLICKEY_HASH_SHA1,
+                                &hash,
+                                &hlen);
+    ssh_key_free(srv_pubkey);
+    if (rc < 0) {
+        return -1;
+    }
+    state = ssh_session_is_known_server(session);
+    switch (state) {
+        case SSH_KNOWN_HOSTS_OK:
+            /* OK */
+            break;
+        case SSH_KNOWN_HOSTS_CHANGED:
+            g_critical ( "Host key for server changed: it is now:\n");
+            ssh_print_hexa("Public key hash", hash, hlen);
+            g_critical ( "For security reasons, connection will be stopped\n");
+            ssh_clean_pubkey_hash(&hash);
+            return -1;
+        case SSH_KNOWN_HOSTS_OTHER:
+            g_critical ( "The host key for this server was not found but an other"
+                    "type of key exists.\n");
+            g_critical ( "An attacker might change the default server key to"
+                    "confuse your client into thinking the key does not exist\n");
+            ssh_clean_pubkey_hash(&hash);
+            return -1;
+        case SSH_KNOWN_HOSTS_NOT_FOUND:
+            g_critical ( "Could not find known host file.\n");
+            g_critical ( "If you accept the host key here, the file will be"
+                    "automatically created.\n");
+            /* FALL THROUGH to SSH_SERVER_NOT_KNOWN behavior */
+        case SSH_KNOWN_HOSTS_UNKNOWN:
+            hexa = ssh_get_hexa(hash, hlen);
+            g_critical ("The server is unknown. Do you trust the host key?\n");
+            g_critical ( "Public key hash: %s\n", hexa);
+            ssh_string_free_char(hexa);
+            ssh_clean_pubkey_hash(&hash);
+            p = fgets(buf, sizeof(buf), stdin);
+            if (p == NULL) {
+                return -1;
+            }
+            cmp = strncasecmp(buf, "yes", 3);
+            if (cmp != 0) {
+                return -1;
+            }
+            rc = ssh_session_update_known_hosts(session);
+            if (rc < 0) {
+                g_critical ("Error %s\n", strerror(errno));
+                return -1;
+            }
+            break;
+        case SSH_KNOWN_HOSTS_ERROR:
+            g_critical ("Error %s", ssh_get_error(session));
+            ssh_clean_pubkey_hash(&hash);
+            return -1;
+    }
+    ssh_clean_pubkey_hash(&hash);
+    return 0;
+}
+
+
+
 Gabriel *
 gabriel_create (gchar * host,
                         gchar * bus_address,
@@ -343,91 +421,43 @@ gabriel_create (gchar * host,
         g_critical ("Failed to create ssh session\n");
         goto finland;
     }
-
+    g_critical ("Connecting to %s\n", host);
+    g_critical ("Using username %s\n", username);
     ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_HOST, host);
     ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_USER, username);
-    // Should this be hardcoded like this?
-    ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_SSH_DIR, "%s/.ssh");
-    ssh_options_set (gabriel->ssh_session, SSH_OPTIONS_IDENTITY, "id_dsa");
 
     ret = ssh_connect (gabriel->ssh_session);
 
-    if (ret) {
-        g_critical ("Failed to open ssh connection to %s\n", host);
+    if (ret!=SSH_OK) {
+        g_critical ("Failed to open ssh connection to %s -- %s\n", host, ssh_get_error (gabriel->ssh_session));
         goto finland;
     }
 
-    ret = ssh_userauth_autopubkey (gabriel->ssh_session, NULL);
+    // Verify the server's identity
+    ret=verify_knownhost(gabriel->ssh_session);
 
-    if (ret != SSH_AUTH_SUCCESS) {
-        if (ret == SSH_AUTH_DENIED) {
-            g_warning ("Public key method didn't work out, "
-                       "trying keyboard-interactive..\n");
-        }
+    if (ret < 0)
+    {
+      ssh_disconnect(gabriel->ssh_session);
+      ssh_free(gabriel->ssh_session);
+      goto finland;
+    }
 
-        if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
-            if (password == NULL) {
-                // Attempt keyboard-interactive
-                ret = ssh_userauth_kbdint(gabriel->ssh_session, username, NULL);
+    if(!password)
+        password=getpass("Password: ");
 
-                while (ret == SSH_AUTH_INFO) {
-                    const char *name, *instruction;
-                    int cur, n;
+    ret = ssh_userauth_password (gabriel->ssh_session, NULL, password);
+    if (ret!=SSH_AUTH_SUCCESS) {
+        g_critical ("Failed to authenticate user %s -- %s\n", username, ssh_get_error (gabriel->ssh_session));
+    }
 
-                    name = ssh_userauth_kbdint_getname (gabriel->ssh_session);
-                    instruction = ssh_userauth_kbdint_getinstruction (gabriel->ssh_session);
-                    n = ssh_userauth_kbdint_getnprompts (gabriel->ssh_session);
-                    g_print ("%s\n%s\n", name, instruction);
+    ret = ssh_userauth_publickey_auto(gabriel->ssh_session, NULL, NULL);
 
-                    for (cur = 0; cur < n; cur++) {
-                        char echo; // TODO: respect this
-                        char *prompt, *answer;
-                        prompt = ssh_userauth_kbdint_getprompt(gabriel->ssh_session, cur, &echo);
-                        answer = getpass(prompt);
-                        if (ssh_userauth_kbdint_setanswer (gabriel->ssh_session, cur, answer) < 0) {
-                            ret = SSH_AUTH_DENIED;
-                            bzero (answer, strlen (answer));
-                            break;
-                        }
-                        bzero (answer, strlen (answer));
-                    }
-
-                    ret = ssh_userauth_kbdint(gabriel->ssh_session, username, NULL);
-                }
-
-                // Attempt password
-                if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
-                    if (ret == SSH_AUTH_DENIED) {
-                        g_warning ("Trying password authentication\n");
-                    }
-                    password = getpass ("Password: ");
-
-                    if (password == NULL) {
-                        g_critical ("%s\n", strerror (errno));
-                        goto finland;
-                    }
-                }
-            }
-            if (ret == SSH_AUTH_DENIED || ret == SSH_AUTH_PARTIAL) {
-                ret =
-                    ssh_userauth_password (gabriel->ssh_session, username,
-                                           password);
-            }
-            /* Get rid of the passwd string ASAP */
-            if(password != NULL) {
-                bzero (password, strlen (password));
-            }
-
-            if (ret != SSH_AUTH_SUCCESS) {
-                g_critical ("Failed to authenticate to host: %s\n", host);
-                goto finland;
-            }
-        }
-
-        else {
-            g_critical ("Failed to authenticate to host %s\n", host);
-            goto finland;
-        }
+    if (ret == SSH_AUTH_ERROR)
+    {
+     g_critical( "PK Authentication failed: %s\n",
+       ssh_get_error(gabriel->ssh_session));
+    goto finland;
     }
 
     return gabriel;
